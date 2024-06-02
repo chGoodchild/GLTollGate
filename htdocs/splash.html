@@ -13,7 +13,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="renderer" content="webkit">
     <link rel="Shortcut Icon" href="$imagesdir/favicon.ico" type="image/x-icon">
-    <title>Welcome to use GL.iNet Wireless</title>
+    <title>TollGate: Pay with cashu for internet access </title>
     <style>
         html,
         body,
@@ -192,7 +192,7 @@
             display: inline-block;
             height: auto;
             max-width: 100%;
-            vertical-align:bottom
+            vertical-align: bottom;
         }
 
         .main {
@@ -253,6 +253,16 @@
         .flex-8 {
             flex: 8;
         }
+
+        .input-field {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
     </style>
 </head>
 
@@ -266,8 +276,9 @@
                 Welcome to use GL.iNet Wireless
             </div>
             <div class="flex-10">
+                <input type="text" class="input-field" placeholder="Enter e-cash here">
                 <a href="$authtarget" class="total_client_to u-btn">
-                    GET CONNECTED
+                    PAY
                 </a>
             </div>
             <div class="flex-2">
@@ -282,14 +293,13 @@
 window.onload= function(){
     autodivheight();
     function autodivheight() {
-        // setTimeout(() => {
-            var winHeight = 0;
-            winHeight = document.documentElement.clientHeight;
-            var o = document.getElementById("imgs");
-            var h = o.clientHeight
-            document.getElementById("test").style.height = winHeight - h + "px";
-        // }, 100);
+        var winHeight = 0;
+        winHeight = document.documentElement.clientHeight;
+        var o = document.getElementById("imgs");
+        var h = o.clientHeight
+        document.getElementById("test").style.height = winHeight - h + "px";
     }
-    window.onresize = autodivheight();
- }
+    window.onresize = autodivheight;
+}
 </script>
+
