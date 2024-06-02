@@ -189,10 +189,10 @@
 
         .img_title {
             width: 100%;
-            display: inline-block;
             height: auto;
             max-width: 100%;
             vertical-align: bottom;
+            max-height: 200px; /* Adjust the max-height as needed */
         }
 
         .main {
@@ -276,7 +276,7 @@
 <body style="height:100%;max-width: 1300px;margin: 0 auto;">
     <div>
         <div class="header">
-            <img src="$imagesdir/portal_login.png" class="img_title" id="imgs" alt="">
+            <img src="$imagesdir/portal_login_bot_compressed.jpg" class="img_title" id="imgs" alt="">
         </div>
         <div class="main" id="test">
             <div class="text_style flex-8">
@@ -286,10 +286,10 @@
                 3 sat per MB
             </div>
             <div class="flex-10">
-                <input type="text" class="input-field" placeholder="Enter e-cash here">
-                <a href="$authtarget" class="total_client_to u-btn">
-                    PAY
-                </a>
+                <form action="/cgi-bin/process_payment.sh" method="post">
+                    <input type="text" name="ecash" class="input-field" placeholder="Enter e-cash here">
+                    <button type="submit" class="u-btn">PAY</button>
+                </form>
             </div>
             <div class="flex-2">
                 Copyright © 2020 GL.iNet. All Rights Reserved.

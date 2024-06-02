@@ -259,7 +259,7 @@
 <body style="height:100%;max-width: 1300px;margin: 0 auto;">
     <div>
         <div class="header">
-            <img src="$imagesdir/portal_login.png" class="img_title" id="imgs" alt="">
+            <img src="$imagesdir/portal_login_bot_compressed.jpg" class="img_title" id="imgs" alt="">
         </div>
         <div class="main" id="test">
             <div class="text_style flex-8">
