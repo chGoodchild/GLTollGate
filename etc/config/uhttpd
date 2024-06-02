@@ -1,5 +1,4 @@
 config uhttpd 'main'
-    option uhttpd_prefix '/cgi-bin'
     list interpreter '.sh=/bin/sh'
     option cgi_prefix '/cgi-bin'
     option home '/www'

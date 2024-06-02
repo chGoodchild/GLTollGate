@@ -30,4 +30,5 @@ https://docs.gl-inet.com/router/en/3/tutorials/captive_portal/#2-change-the-defa
 3. **Save and close the file**.
 
 
-opkg install uhttpd
+# opkg install uhttpd
+opkg install lighttpd lighttpd-mod-cgi
