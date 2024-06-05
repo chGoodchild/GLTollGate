@@ -74,7 +74,7 @@ config nodogsplash
   # Values session_start and session_start are in seconds since 1970 or 0 for unknown/unlimited.
   #
   #option binauth '/bin/myauth.sh'
-  option binauth '/www/cgi-bin/payment.sh'
+  # option binauth '/www/cgi-bin/payment.sh'
   # Enable PreAuth Support.
   #
   # A simple login script is provided in the package.
