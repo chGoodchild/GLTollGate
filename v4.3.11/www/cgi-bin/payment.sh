@@ -2,6 +2,13 @@
 
 METHOD="$1"
 MAC="$2"
+ARG3="$3"
+ARG4="$4"
+ARG5="$5"
+ARG6="$6"
+
+# Log all arguments to /tmp/arguments_log.md
+echo "METHOD: $METHOD, MAC: $MAC, ARG3: $ARG3, ARG4: $ARG4, ARG5: $ARG5, ARG6: $ARG6" >> /tmp/arguments_log.md
 
 case "$METHOD" in
   auth_client)
@@ -24,3 +31,4 @@ case "$METHOD" in
     # shutdown_deauth: Client was deauthenticated by Nodogsplash terminating.
     ;;
 esac
+
