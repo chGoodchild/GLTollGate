@@ -12,8 +12,8 @@ echo "METHOD: $METHOD, MAC: $MAC, ARG3: $ARG3, ARG4: $ARG4, ARG5: $ARG5, ARG6: $
 
 case "$METHOD" in
   auth_client)
-    USERNAME="$3"
-    PASSWORD="$4"
+    ECASH="$3"
+    echo "Auth Client - ECASH: $ECASH" >> /tmp/arguments_log.md
     echo 3600 0 0
     exit 0
     ;;
@@ -29,6 +29,7 @@ case "$METHOD" in
     # ndsctl_auth: Client was authenticated by the ndsctl tool.
     # ndsctl_deauth: Client was deauthenticated by the ndsctl tool.
     # shutdown_deauth: Client was deauthenticated by Nodogsplash terminating.
+    echo "METHOD: $METHOD, MAC: $MAC, INGOING_BYTES: $INGOING_BYTES, OUTGOING_BYTES: $OUTGOING_BYTES, SESSION_START: $SESSION_START, SESSION_END: $SESSION_END" >> /tmp/arguments_log.md
     ;;
 esac
 
