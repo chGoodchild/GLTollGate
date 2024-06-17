@@ -27,7 +27,7 @@ get_mint_keys() {
   echo "Mint keys response: $RESPONSE"
 }
 
-# Function to check the token and extract the proof secret
+# Function to check the token and extract the proof values
 check_token() {
   echo "Checking token..."
   RESPONSE=$(curl -s -X POST "$MINT_URL/check" \
@@ -52,6 +52,9 @@ check_token() {
   PROOF_C=$(echo $RESPONSE | jq -r '.proofs[0].C')
   echo "Token check response: $RESPONSE"
   echo "Extracted proof secret: $PROOF_SECRET"
+  echo "Extracted proof amount: $PROOF_AMOUNT"
+  echo "Extracted proof id: $PROOF_ID"
+  echo "Extracted proof C: $PROOF_C"
 }
 
 # Function to get lnurl payment request details and extract the amount
@@ -145,6 +148,9 @@ if [[ -z "$TOKEN" ]]; then
   echo "Usage: $0 <token>"
   exit 1
 fi
+
+# Parse the token to ensure it is a valid JSON string
+TOKEN=$(echo $TOKEN | jq -c '.')
 
 # Execute the sequence of requests
 get_mint_keys
