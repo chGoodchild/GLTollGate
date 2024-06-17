@@ -45,8 +45,11 @@ check_token() {
     -H 'Sec-GPC: 1' \
     -H 'Priority: u=4' \
     -H 'TE: trailers' \
-    --data-raw "{\"proofs\":[{\"secret\":\"$PROOF_SECRET\"}]}")
+    --data-raw "{\"proofs\":[$TOKEN]}")
   PROOF_SECRET=$(echo $RESPONSE | jq -r '.proofs[0].secret')
+  PROOF_AMOUNT=$(echo $RESPONSE | jq -r '.proofs[0].amount')
+  PROOF_ID=$(echo $RESPONSE | jq -r '.proofs[0].id')
+  PROOF_C=$(echo $RESPONSE | jq -r '.proofs[0].C')
   echo "Token check response: $RESPONSE"
   echo "Extracted proof secret: $PROOF_SECRET"
 }
@@ -133,7 +136,7 @@ redeem_token() {
     -H 'Sec-GPC: 1' \
     -H 'Priority: u=4' \
     -H 'TE: trailers' \
-    --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":[{\"id\":\"9mlfd5vCzgGl\",\"amount\":4,\"secret\":\"$PROOF_SECRET\",\"C\":\"031717478db4665f8eebffb51cc759a7246a1964b2d01c017dad49c9d291f55d83\"}],\"outputs\":[]}")
+    --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":[{\"id\":\"$PROOF_ID\",\"amount\":$PROOF_AMOUNT,\"secret\":\"$PROOF_SECRET\",\"C\":\"$PROOF_C\"}],\"outputs\":[]}")
   echo "Redeem response: $RESPONSE"
 }
 
@@ -150,3 +153,4 @@ get_lnurl_details
 get_payment_request
 check_fees
 redeem_token
+
