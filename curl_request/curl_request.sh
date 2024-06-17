@@ -7,11 +7,27 @@ LNURL="https://minibits.cash/.well-known/lnurlp/chandran"
 # Token can be passed as an argument to the script
 TOKEN="$1"
 
-# Check if jq is installed
+# Check if jq and base64 are installed
 if ! command -v jq &> /dev/null; then
     echo "jq is required but not installed. Please install jq and try again."
     exit 1
 fi
+
+if ! command -v base58 &> /dev/null; then
+    echo "base58 is required but not installed. Please install base58 and try again."
+    exit 1
+fi
+
+# Function to decode the token from base64
+decode_token() {
+    echo "Decoding token..."
+    DECODED_TOKEN=$(echo $TOKEN | base58 --decode)
+    if [ $? -ne 0 ]; then
+        echo "Failed to decode token. Please ensure the token is correctly base58 encoded."
+        exit 1
+    fi
+    echo "Decoded token: $DECODED_TOKEN"
+}
 
 # Function to get mint keys
 get_mint_keys() {
@@ -51,7 +67,7 @@ check_token() {
     -H 'Sec-GPC: 1' \
     -H 'Priority: u=4' \
     -H 'TE: trailers' \
-    --data-raw "{\"proofs\":[$TOKEN]}")
+    --data-raw "{\"proofs\":[$DECODED_TOKEN]}")
   if echo "$RESPONSE" | jq -e . >/dev/null 2>&1; then
     PROOF_SECRET=$(echo $RESPONSE | jq -r '.proofs[0].secret')
     PROOF_AMOUNT=$(echo $RESPONSE | jq -r '.proofs[0].amount')
@@ -165,11 +181,8 @@ if [[ -z "$TOKEN" ]]; then
   exit 1
 fi
 
-echo $TOKEN
-
-# Parse the token to ensure it is a valid JSON string
-# TOKEN=$(echo $TOKEN | jq -c '.')
-# echo $TOKEN
+# Decode the token
+decode_token
 
 # Execute the sequence of requests
 get_mint_keys
