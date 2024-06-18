@@ -27,18 +27,23 @@ decode_token() {
     # Parse the JSON to extract necessary values
     TOTAL_AMOUNT=0
     PROOFS=$(echo "$DECODED_TOKEN" | jq -c '.token[0].proofs[]')
+    PROOFS_ARRAY=()
     for PROOF in $PROOFS; do
         AMOUNT=$(echo "$PROOF" | jq -r '.amount')
         TOTAL_AMOUNT=$((TOTAL_AMOUNT + AMOUNT))
+        PROOFS_ARRAY+=("$PROOF")
     done
+
+    # Convert proofs array to JSON array
+    PROOFS_JSON=$(jq -c -n '$ARGS.positional' --args "${PROOFS_ARRAY[@]}")
 
     # Print total amount for debugging purposes
     echo "Total amount to transfer: $TOTAL_AMOUNT sats"
 
     # Extract other necessary details from the first proof
-    PROOF_SECRET=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].secret')
-    PROOF_ID=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].id')
-    PROOF_C=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].C')
+    PROOF_SECRET=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.secret')
+    PROOF_ID=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.id')
+    PROOF_C=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.C')
 
     # Check if parsing was successful
     if [ -z "$PROOF_SECRET" ] || [ -z "$PROOF_ID" ] || [ -z "$PROOF_C" ]; then
@@ -46,6 +51,7 @@ decode_token() {
         exit 1
     fi
 }
+
 
 # Function to get mint keys
 get_mint_keys() {
@@ -185,7 +191,7 @@ redeem_token() {
     -H 'Sec-GPC: 1' \
     -H 'Priority: u=4' \
     -H 'TE: trailers' \
-    --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":[{\"id\":\"$PROOF_ID\",\"amount\":$PROOF_AMOUNT,\"secret\":\"$PROOF_SECRET\",\"C\":\"$PROOF_C\"}],\"outputs\":[]}")
+    --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":$PROOFS_JSON,\"outputs\":[]}")
   echo "Redeem response: $RESPONSE"
 }
 
