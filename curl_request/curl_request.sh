@@ -27,8 +27,8 @@ decode_token() {
     # Decode base64, handle any errors
     DECODED_TOKEN=$(echo "$CLEANED_BASE64_TOKEN" | base64 --decode 2>&1)
     if [ $? -ne 0 ]; then
-       echo "Error decoding token: $DECODED_TOKEN"
-       exit 1
+        echo "Error decoding token: $DECODED_TOKEN"
+        exit 1
     fi
 
     echo "Decoded Token: $DECODED_TOKEN"
@@ -50,7 +50,7 @@ decode_token() {
     done
 
     # Convert proofs array to JSON array
-    PROOFS_JSON=$(jq -c -n '$ARGS.positional' --args "${PROOFS_ARRAY[@]}")
+    PROOFS_JSON=$(jq -c -n '$ARGS.positional' --args "${PROOFS_ARRAY[@]}" | jq -c '. | map(fromjson)')
     echo "Proofs JSON: $PROOFS_JSON"
 
     # Print total amount for debugging purposes
