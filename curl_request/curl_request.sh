@@ -19,15 +19,25 @@ decode_token() {
     # Remove the 'cashuA' prefix before decoding
     BASE64_TOKEN=$(echo "${TOKEN:6}")
     echo "Base64 Token: $BASE64_TOKEN"
-    
+
+    # Clean up the base64 token to remove any invalid characters
+    CLEANED_BASE64_TOKEN=$(echo "$BASE64_TOKEN" | tr -d '\n\r')
+    echo "Cleaned Base64 Token: $CLEANED_BASE64_TOKEN"
+
     # Decode base64, handle any errors
-    DECODED_TOKEN=$(echo "$BASE64_TOKEN" | base64 --decode 2>&1)
+    DECODED_TOKEN=$(echo "$CLEANED_BASE64_TOKEN" | base64 --decode 2>&1)
     if [ $? -ne 0 ]; then
-        echo "Error decoding token: $DECODED_TOKEN"
+       echo "Error decoding token: $DECODED_TOKEN"
+       exit 1
+    fi
+
+    echo "Decoded Token: $DECODED_TOKEN"
+
+    # Validate JSON format
+    if ! echo "$DECODED_TOKEN" | jq . > /dev/null 2>&1; then
+        echo "Decoded token is not valid JSON."
         exit 1
     fi
-    
-    echo "Decoded Token: $DECODED_TOKEN"
 
     # Parse the JSON to extract necessary values
     TOTAL_AMOUNT=0
@@ -57,7 +67,6 @@ decode_token() {
         exit 1
     fi
 }
-
 
 # Function to get mint keys
 get_mint_keys() {
