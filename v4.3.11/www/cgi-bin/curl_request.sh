@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/sh -e
+set -x
 
 # Base URLs of the services
 MINT_URL="https://mint.minibits.cash/Bitcoin"
@@ -7,24 +8,17 @@ LNURL="https://minibits.cash/.well-known/lnurlp/chandran"
 # Token can be passed as an argument to the script
 TOKEN="$1"
 
-# Check if jq is installed
-if ! command -v jq &> /dev/null; then
-    echo "jq is required but not installed. Please install jq and try again."
-    exit 1
-fi
-
-if ! command -v base64 &> /dev/null
-then
-    echo "Error: base64 is not installed. Please install it using 'opkg install coreutils-base64'."
-    exit 1
-fi
-
 # Function to decode the token and calculate total amount
 decode_token() {
     echo "Decoding token..."
+    # TOKEN="cashuAeyJ0b2tlbiI6W3sibWludCI6Imh0dHBzOi8vbWludC5taW5pYml0cy5jYXNoL0JpdGNvaW4iLCJwcm9vZnMiOlt7ImlkIjoiOW1sZmQ1dkN6Z0dsIiwiYW1vdW50Ijo0LCJzZWNyZXQiOiJkY2VjYjNiYWQwYmU1ODlhNGE0NzRmZDY5NWE3ZWRmZDFlM2QxYWIwNDIyNjQzZTgzMGFmNmY2NmFmY2RiMTAwIiwiQyI6IjAzYTFmNTAxYmZlNWU4MWRiZWQ3MmM1OTFlZDc0MjgxOWRlNDhlYzhmNzllYmQ4ZWU4OTUzYjMzYmYwNWYxMWJiOSJ9XX1dLCJ1bml0Ijoic2F0IiwibWVtbyI6IlNlbnQgZnJvbSBNaW5pYml0cyJ9"
+    
+    echo $TOKEN
     
     # Remove the 'cashuA' prefix before decoding
-    BASE64_TOKEN=$(echo "${TOKEN:6}")
+    # BASE64_TOKEN=$(echo "${TOKEN:6}")
+    BASE64_TOKEN=$(echo "$TOKEN" | cut -b 7-)
+    
     echo "Base64 Token: $BASE64_TOKEN"
 
     # Clean up the base64 token to remove any invalid characters
@@ -232,7 +226,7 @@ redeem_token() {
 }
 
 # Check if token is provided
-if [[ -z "$TOKEN" ]]; then
+if [ -z "$TOKEN" ]; then
   echo "Usage: $0 <token>"
   exit 1
 fi

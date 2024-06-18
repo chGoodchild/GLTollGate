@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 METHOD="$1"
 MAC="$2"
