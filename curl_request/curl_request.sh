@@ -18,27 +18,35 @@ decode_token() {
     echo "Decoding token..."
     # Remove the 'cashuA' prefix before decoding
     BASE64_TOKEN=$(echo "${TOKEN:6}")
+    echo "Base64 Token: $BASE64_TOKEN"
     DECODED_TOKEN=$(echo "$BASE64_TOKEN" | base64 -d 2>/dev/null)
     if [ $? -ne 0 ]; then
         echo "Error decoding token"
         exit 1
     fi
+    echo "Decoded Token: $DECODED_TOKEN"
 
     # Parse the JSON to extract necessary values
     TOTAL_AMOUNT=0
-    PROOFS_JSON=$(echo "$DECODED_TOKEN" | jq '.token[0].proofs')
-    for PROOF in $(echo "$PROOFS_JSON" | jq -c '.[]'); do
+    PROOFS=$(echo "$DECODED_TOKEN" | jq -c '.token[0].proofs[]')
+    PROOFS_ARRAY=()
+    for PROOF in $PROOFS; do
         AMOUNT=$(echo "$PROOF" | jq -r '.amount')
         TOTAL_AMOUNT=$((TOTAL_AMOUNT + AMOUNT))
+        PROOFS_ARRAY+=("$PROOF")
     done
+
+    # Convert proofs array to JSON array
+    PROOFS_JSON=$(jq -c -n '$ARGS.positional' --args "${PROOFS_ARRAY[@]}")
+    echo "Proofs JSON: $PROOFS_JSON"
 
     # Print total amount for debugging purposes
     echo "Total amount to transfer: $TOTAL_AMOUNT sats"
 
     # Extract other necessary details from the first proof
-    PROOF_SECRET=$(echo "$PROOFS_JSON" | jq -r '.[0].secret')
-    PROOF_ID=$(echo "$PROOFS_JSON" | jq -r '.[0].id')
-    PROOF_C=$(echo "$PROOFS_JSON" | jq -r '.[0].C')
+    PROOF_SECRET=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.secret')
+    PROOF_ID=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.id')
+    PROOF_C=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.C')
 
     # Check if parsing was successful
     if [ -z "$PROOF_SECRET" ] || [ -z "$PROOF_ID" ] || [ -z "$PROOF_C" ]; then
