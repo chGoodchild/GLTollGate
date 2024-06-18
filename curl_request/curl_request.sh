@@ -25,19 +25,19 @@ decode_token() {
     echo "Cleaned Base64 Token: $CLEANED_BASE64_TOKEN"
 
     # Decode base64, handle any errors
-    DECODED_TOKEN=$(echo "$CLEANED_BASE64_TOKEN" | base64 --decode 2>&1)
-    if [ $? -ne 0 ]; then
-        echo "Error decoding token: $DECODED_TOKEN"
+    DECODED_TOKEN=$(echo "$CLEANED_BASE64_TOKEN" | base64 --decode 2>/dev/null)
+    if [ -z "$DECODED_TOKEN" ]; then
+        echo "Error decoding token or token is empty."
         exit 1
     fi
-
-    echo "Decoded Token: $DECODED_TOKEN"
 
     # Validate JSON format
     if ! echo "$DECODED_TOKEN" | jq . > /dev/null 2>&1; then
         echo "Decoded token is not valid JSON."
         exit 1
     fi
+
+    echo $DECODED_TOKEN
 
     # Parse the JSON to extract necessary values
     TOTAL_AMOUNT=0
