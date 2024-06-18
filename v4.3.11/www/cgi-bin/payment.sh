@@ -10,7 +10,7 @@ echo "METHOD: $METHOD, MAC: $MAC, USERNAME: $USERNAME, PASSWORD: $PASSWORD" >> /
 
 case "$METHOD" in
   auth_client)
-    ECASH="$USERNAME"
+    ECASH="$PASSWORD"
     echo "Auth Client - ECASH: $ECASH" >> /tmp/arguments_log.md
     
     if [ "$ECASH" = "cheatcode" ]; then
