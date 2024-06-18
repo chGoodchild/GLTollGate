@@ -22,6 +22,7 @@ fi
 # Function to decode the token and calculate total amount
 decode_token() {
     echo "Decoding token..."
+    
     # Remove the 'cashuA' prefix before decoding
     BASE64_TOKEN=$(echo "${TOKEN:6}")
     echo "Base64 Token: $BASE64_TOKEN"
@@ -30,6 +31,13 @@ decode_token() {
     CLEANED_BASE64_TOKEN=$(echo "$BASE64_TOKEN" | tr -d '\n\r')
     echo "Cleaned Base64 Token: $CLEANED_BASE64_TOKEN"
 
+    # Ensure proper padding
+    PADDING=$((${#CLEANED_BASE64_TOKEN} % 4))
+    if [ $PADDING -ne 0 ]; then
+        CLEANED_BASE64_TOKEN="${CLEANED_BASE64_TOKEN}$(printf '%0.s=' $(seq 1 $((4 - PADDING))))"
+    fi
+    echo "Padded Base64 Token: $CLEANED_BASE64_TOKEN"
+
     # Decode base64, handle any errors
     DECODED_TOKEN=$(echo "$CLEANED_BASE64_TOKEN" | base64 --decode 2>/dev/null)
     if [ -z "$DECODED_TOKEN" ]; then
@@ -37,13 +45,14 @@ decode_token() {
         exit 1
     fi
 
+    # Print the decoded JSON
+    echo "Decoded JSON: $DECODED_TOKEN"
+
     # Validate JSON format
     if ! echo "$DECODED_TOKEN" | jq . > /dev/null 2>&1; then
         echo "Decoded token is not valid JSON."
         exit 1
     fi
-
-    echo $DECODED_TOKEN
 
     # Parse the JSON to extract necessary values
     TOTAL_AMOUNT=0
