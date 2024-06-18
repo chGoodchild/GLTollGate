@@ -13,6 +13,12 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+if ! command -v base64 &> /dev/null
+then
+    echo "Error: base64 is not installed. Please install it using 'opkg install coreutils-base64'."
+    exit 1
+fi
+
 # Function to decode the token and calculate total amount
 decode_token() {
     echo "Decoding token..."
