@@ -18,8 +18,16 @@ case "$METHOD" in
       echo 3600 0 0
       exit 0
     else
-      echo "Connection rejected: Invalid e-cash" >> /tmp/arguments_log.md
-      exit 1
+      # Pass the ECASH token to curl_request.sh and check the result
+      ./curl_request.sh "$ECASH"
+      if [ $? -eq 0 ]; then
+        echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
+        echo 3600 0 0
+        exit 0
+      else
+        echo "Connection rejected: Token redemption failed" >> /tmp/arguments_log.md
+        exit 1
+      fi
     fi
     ;;
   client_auth|client_deauth|idle_deauth|timeout_deauth|ndsctl_auth|ndsctl_deauth|shutdown_deauth)
