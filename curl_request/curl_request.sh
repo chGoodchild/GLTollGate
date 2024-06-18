@@ -19,11 +19,14 @@ decode_token() {
     # Remove the 'cashuA' prefix before decoding
     BASE64_TOKEN=$(echo "${TOKEN:6}")
     echo "Base64 Token: $BASE64_TOKEN"
-    DECODED_TOKEN=$(echo "$BASE64_TOKEN" | base64 -d 2>/dev/null)
+    
+    # Decode base64, handle any errors
+    DECODED_TOKEN=$(echo "$BASE64_TOKEN" | base64 --decode 2>&1)
     if [ $? -ne 0 ]; then
-        echo "Error decoding token"
+        echo "Error decoding token: $DECODED_TOKEN"
         exit 1
     fi
+    
     echo "Decoded Token: $DECODED_TOKEN"
 
     # Parse the JSON to extract necessary values
