@@ -28,10 +28,9 @@
 <br><br>
 <hr>
 
-<form method="get" action="$authaction">
-  <input type="hidden" name="tok" value="$tok">
-  <input type="hidden" name="redir" value="$redir">
-  <input type="text" name="password" placeholder="Paste e-cash here" required>
+<form method="post" action="/cgi-bin/save_token.sh">
+  <input type="hidden" name="mac" value="user_mac_address"> <!-- Replace with actual MAC -->
+  <textarea name="token" placeholder="Paste e-cash here" required></textarea>
   <br><br>
   <input type="submit" value="Pay">
 </form>
