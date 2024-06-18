@@ -42,30 +42,36 @@ decode_token() {
     # Parse the JSON to extract necessary values
     TOTAL_AMOUNT=0
     PROOFS=$(echo "$DECODED_TOKEN" | jq -c '.token[0].proofs[]')
-    PROOFS_ARRAY=()
+    PROOFS_JSON="["
+    FIRST_PROOF=true
     for PROOF in $PROOFS; do
         AMOUNT=$(echo "$PROOF" | jq -r '.amount')
         TOTAL_AMOUNT=$((TOTAL_AMOUNT + AMOUNT))
-        PROOFS_ARRAY+=("$PROOF")
+        if [ "$FIRST_PROOF" = true ]; then
+            PROOFS_JSON="$PROOFS_JSON$PROOF"
+            FIRST_PROOF=false
+        else
+            PROOFS_JSON="$PROOFS_JSON,$PROOF"
+        fi
     done
-
-    # Convert proofs array to JSON array
-    PROOFS_JSON=$(jq -c -n '$ARGS.positional' --args "${PROOFS_ARRAY[@]}" | jq -c '. | map(fromjson)')
-    echo "Proofs JSON: $PROOFS_JSON"
+    PROOFS_JSON="$PROOFS_JSON]"
 
     # Print total amount for debugging purposes
+    echo "Proofs JSON: $PROOFS_JSON"
     echo "Total amount to transfer: $TOTAL_AMOUNT sats"
 
     # Extract other necessary details from the first proof
-    PROOF_SECRET=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.secret')
-    PROOF_ID=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.id')
-    PROOF_C=$(echo "${PROOFS_ARRAY[0]}" | jq -r '.C')
+    FIRST_PROOF=$(echo "$PROOFS" | head -n 1)
+    PROOF_SECRET=$(echo "$FIRST_PROOF" | jq -r '.secret')
+    PROOF_ID=$(echo "$FIRST_PROOF" | jq -r '.id')
+    PROOF_C=$(echo "$FIRST_PROOF" | jq -r '.C')
 
     # Check if parsing was successful
     if [ -z "$PROOF_SECRET" ] || [ -z "$PROOF_ID" ] || [ -z "$PROOF_C" ]; then
         echo "Error parsing decoded token JSON"
         exit 1
     fi
+
 }
 
 # Function to get mint keys
