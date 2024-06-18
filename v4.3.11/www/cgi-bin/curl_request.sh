@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Base URLs of the services
 MINT_URL="https://mint.minibits.cash/Bitcoin"
