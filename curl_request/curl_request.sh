@@ -108,8 +108,8 @@ get_lnurl_details() {
 
 # Function to get the payment request for a specific amount
 get_payment_request() {
-    echo "Getting payment request for amount $LNURL_AMOUNT..."
-    PAYMENT_REQUEST=$(curl -s "$LNURL?amount=$LNURL_AMOUNT" \
+    echo "Getting payment request for amount $PROOF_AMOUNT..."
+    PAYMENT_REQUEST=$(curl -s "$LNURL?amount=$((PROOF_AMOUNT * 1000))" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: */*' \
         -H 'Accept-Language: en-US,en;q=0.5' \
