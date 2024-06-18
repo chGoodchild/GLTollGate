@@ -13,19 +13,38 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# Function to decode the token
+# Function to decode the token and calculate total amount
 decode_token() {
     echo "Decoding token..."
     # Remove the 'cashuA' prefix before decoding
-    DECODED_TOKEN=$(echo "${TOKEN:6}" | base64 -d)
+    BASE64_TOKEN=$(echo "${TOKEN:6}")
+    DECODED_TOKEN=$(echo "$BASE64_TOKEN" | base64 -d 2>/dev/null)
     if [ $? -ne 0 ]; then
         echo "Error decoding token"
         exit 1
     fi
+
+    # Parse the JSON to extract necessary values
+    TOTAL_AMOUNT=0
+    PROOFS=$(echo "$DECODED_TOKEN" | jq -c '.token[0].proofs[]')
+    for PROOF in $PROOFS; do
+        AMOUNT=$(echo "$PROOF" | jq -r '.amount')
+        TOTAL_AMOUNT=$((TOTAL_AMOUNT + AMOUNT))
+    done
+
+    # Print total amount for debugging purposes
+    echo "Total amount to transfer: $TOTAL_AMOUNT sats"
+
+    # Extract other necessary details from the first proof
     PROOF_SECRET=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].secret')
-    PROOF_AMOUNT=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].amount')
     PROOF_ID=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].id')
     PROOF_C=$(echo "$DECODED_TOKEN" | jq -r '.token[0].proofs[0].C')
+
+    # Check if parsing was successful
+    if [ -z "$PROOF_SECRET" ] || [ -z "$PROOF_ID" ] || [ -z "$PROOF_C" ]; then
+        echo "Error parsing decoded token JSON"
+        exit 1
+    fi
 }
 
 # Function to get mint keys
@@ -71,7 +90,6 @@ check_token() {
     if echo "$RESPONSE" | jq -e . >/dev/null 2>&1; then
         echo "Token check response: $RESPONSE"
         echo "Extracted proof secret: $PROOF_SECRET"
-        echo "Extracted proof amount: $PROOF_AMOUNT"
         echo "Extracted proof id: $PROOF_ID"
         echo "Extracted proof C: $PROOF_C"
     else
@@ -108,8 +126,8 @@ get_lnurl_details() {
 
 # Function to get the payment request for a specific amount
 get_payment_request() {
-    echo "Getting payment request for amount $PROOF_AMOUNT..."
-    PAYMENT_REQUEST=$(curl -s "$LNURL?amount=$((PROOF_AMOUNT * 1000))" \
+    echo "Getting payment request for amount $TOTAL_AMOUNT..."
+    PAYMENT_REQUEST=$(curl -s "$LNURL?amount=$((TOTAL_AMOUNT * 1000))" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: */*' \
         -H 'Accept-Language: en-US,en;q=0.5' \
