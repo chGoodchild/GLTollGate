@@ -231,6 +231,9 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
+
+echo "Curl request - ECASH: $ECASH" >> /tmp/arguments_log.md
+
 # Decode the token
 decode_token
 
