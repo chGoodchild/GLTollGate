@@ -1,4 +1,7 @@
-#!/bin/sh -e
+#!/bin/sh
+
+##!/bin/sh -e
+# set -x
 
 METHOD="$1"
 MAC="$2"
@@ -19,8 +22,15 @@ case "$METHOD" in
       exit 0
     else
       # Pass the ECASH token to curl_request.sh and capture the result
-      RESPONSE=$(./curl_request.sh "$ECASH")
+      RESPONSE=$(/www/cgi-bin/./curl_request.sh "$ECASH" 2>&1)
+      CURL_EXIT_CODE=$?
+      echo "Curl request - ECASH: $ECASH, Exit Code: $CURL_EXIT_CODE" >> /tmp/arguments_log.md
       echo "Redeem response: $RESPONSE" >> /tmp/arguments_log.md
+      
+      if [ $CURL_EXIT_CODE -ne 0 ]; then
+        echo "Curl request failed with exit code $CURL_EXIT_CODE" >> /tmp/arguments_log.md
+        exit 1
+      fi
       
       # Check if the response contains "paid":true
       if echo "$RESPONSE" | grep -q '"paid":true'; then

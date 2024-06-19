@@ -1,5 +1,7 @@
-#!/bin/sh -e
-set -x
+#!/bin/sh
+
+##!/bin/sh -e
+# set -x
 
 # Base URLs of the services
 MINT_URL="https://mint.minibits.cash/Bitcoin"
@@ -10,9 +12,7 @@ TOKEN="$1"
 
 # Function to decode the token and calculate total amount
 decode_token() {
-    echo "Decoding token..."
-    # TOKEN="cashuAeyJ0b2tlbiI6W3sibWludCI6Imh0dHBzOi8vbWludC5taW5pYml0cy5jYXNoL0JpdGNvaW4iLCJwcm9vZnMiOlt7ImlkIjoiOW1sZmQ1dkN6Z0dsIiwiYW1vdW50Ijo0LCJzZWNyZXQiOiJkY2VjYjNiYWQwYmU1ODlhNGE0NzRmZDY5NWE3ZWRmZDFlM2QxYWIwNDIyNjQzZTgzMGFmNmY2NmFmY2RiMTAwIiwiQyI6IjAzYTFmNTAxYmZlNWU4MWRiZWQ3MmM1OTFlZDc0MjgxOWRlNDhlYzhmNzllYmQ4ZWU4OTUzYjMzYmYwNWYxMWJiOSJ9XX1dLCJ1bml0Ijoic2F0IiwibWVtbyI6IlNlbnQgZnJvbSBNaW5pYml0cyJ9"
-    
+
     echo $TOKEN
     
     # Remove the 'cashuA' prefix before decoding
