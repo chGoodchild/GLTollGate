@@ -5,7 +5,7 @@
 
 METHOD="$1"
 MAC="$2"
-USERNAME="$3"  # Here, USERNAME represents the e-cash value
+USERNAME="$3"  # Here, USERNAME represents either the e-cash value or LNURLW
 PASSWORD="$4"  # Password might not be used in this case
 
 # Log all arguments to /tmp/arguments_log.md
@@ -15,23 +15,44 @@ case "$METHOD" in
   auth_client)
     ECASH="$USERNAME"
     echo "Auth Client - ECASH: $ECASH" >> /tmp/arguments_log.md
-    
+
     if [ "$ECASH" = "cheatcode" ]; then
       echo "Connection approved" >> /tmp/arguments_log.md
       echo 3600 0 0
       exit 0
-    else
-      # Pass the ECASH token to curl_request.sh and capture the result
-      RESPONSE=$(/www/cgi-bin/./curl_request.sh "$ECASH" 2>&1)
+    elif echo "$ECASH" | grep -q "^LNURL"; then
+      # Handle LNURLW
+      RESPONSE=$(/www/cgi-bin/redeem_lnurlw.sh "$ECASH" 2>&1)
       CURL_EXIT_CODE=$?
-      echo "Curl request - ECASH: $ECASH, Exit Code: $CURL_EXIT_CODE" >> /tmp/arguments_log.md
+      echo "Curl request - LNURLW: $ECASH, Exit Code: $CURL_EXIT_CODE" >> /tmp/arguments_log.md
       echo "Redeem response: $RESPONSE" >> /tmp/arguments_log.md
-      
+
       if [ $CURL_EXIT_CODE -ne 0 ]; then
         echo "Curl request failed with exit code $CURL_EXIT_CODE" >> /tmp/arguments_log.md
         exit 1
       fi
-      
+
+      # Check if the response contains "status":"OK"
+      if echo "$RESPONSE" | grep -q '"status":"OK"'; then
+        echo "Connection approved: LNURLW redeemed successfully" >> /tmp/arguments_log.md
+        echo 3600 0 0
+        exit 0
+      else
+        echo "Connection rejected: LNURLW redemption failed" >> /tmp/arguments_log.md
+        exit 1
+      fi
+    else
+      # Handle e-cash
+      RESPONSE=$(/www/cgi-bin/./curl_request.sh "$ECASH" 2>&1)
+      CURL_EXIT_CODE=$?
+      echo "Curl request - ECASH: $ECASH, Exit Code: $CURL_EXIT_CODE" >> /tmp/arguments_log.md
+      echo "Redeem response: $RESPONSE" >> /tmp/arguments_log.md
+
+      if [ $CURL_EXIT_CODE -ne 0 ]; then
+        echo "Curl request failed with exit code $CURL_EXIT_CODE" >> /tmp/arguments_log.md
+        exit 1
+      fi
+
       # Check if the response contains "paid":true
       if echo "$RESPONSE" | grep -q '"paid":true'; then
         echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
@@ -53,3 +74,4 @@ case "$METHOD" in
     echo "METHOD: $METHOD, MAC: $MAC, INGOING_BYTES: $INGOING_BYTES, OUTGOING_BYTES: $OUTGOING_BYTES" >> /tmp/arguments_log.md
     ;;
 esac
+

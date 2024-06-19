@@ -1,11 +1,15 @@
 #!/bin/sh -e
-set -x
+
+##!/bin/sh -e
+#set -x
 
 # API URLs
 LNURL_DECODE_API_URL="https://demo.lnbits.com/api/v1/payments/decode"
 LNURLP_URL="https://minibits.cash/.well-known/lnurlp/chandran"
 API_KEY="5d0605a2fa0d4d6c8fe13fdec25720ca"
-LNURLW="LNURL1DP68GURN8GHJ7ER9D4HJUMRWVF5HGUEWVDHK6TMHD96XSERJV9MJ7CTSDYHHVVF0D3H82UNV9A45SWZDWPFKYST8FEHNYET2DPJ4GKJ2W3AXZWAGEQ6"
+
+# Accept LNURLW as an argument to the script
+LNURLW="$1"
 
 # Step 1: Decode the LNURLw using the API
 decode_response=$(curl -s -X POST $LNURL_DECODE_API_URL -d "{\"data\": \"$LNURLW\"}" -H "X-Api-Key: $API_KEY" -H "Content-type: application/json")
@@ -67,11 +71,12 @@ echo "Full Callback URL: $full_callback_url"
 
 response=$(curl -s "$full_callback_url")
 
-# Output the response
-echo "Response: $response"
-
 # Check if the response was successful
-if [ -z "$response" ]; then
-    echo "Error: Failed to get a response from the callback URL."
+if echo "$response" | grep -q '"status":"OK"'; then
+    echo '{"status":"OK"}'
+else
+    echo "Error: Failed to get a successful response from the callback URL."
+    echo "Response: $response"
     exit 1
 fi
+
