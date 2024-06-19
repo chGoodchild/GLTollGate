@@ -18,9 +18,12 @@ case "$METHOD" in
       echo 3600 0 0
       exit 0
     else
-      # Pass the ECASH token to curl_request.sh and check the result
-      ./curl_request.sh "$ECASH"
-      if [ $? -eq 0 ]; then
+      # Pass the ECASH token to curl_request.sh and capture the result
+      RESPONSE=$(./curl_request.sh "$ECASH")
+      echo "Redeem response: $RESPONSE" >> /tmp/arguments_log.md
+      
+      # Check if the response contains "paid":true
+      if echo "$RESPONSE" | grep -q '"paid":true'; then
         echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0
