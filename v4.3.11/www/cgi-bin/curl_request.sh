@@ -9,28 +9,29 @@ LNURL="https://minibits.cash/.well-known/lnurlp/chandran"
 
 # Token can be passed as an argument to the script
 TOKEN="$1"
+VERBOSE="false"
 
 # Function to decode the token and calculate total amount
 decode_token() {
 
-    echo $TOKEN
+    [ "$VERBOSE" = "true" ] && echo $TOKEN
     
     # Remove the 'cashuA' prefix before decoding
     # BASE64_TOKEN=$(echo "${TOKEN:6}")
     BASE64_TOKEN=$(echo "$TOKEN" | cut -b 7-)
     
-    echo "Base64 Token: $BASE64_TOKEN"
+    [ "$VERBOSE" = "true" ] && echo "Base64 Token: $BASE64_TOKEN"
 
     # Clean up the base64 token to remove any invalid characters
     CLEANED_BASE64_TOKEN=$(echo "$BASE64_TOKEN" | tr -d '\n\r')
-    echo "Cleaned Base64 Token: $CLEANED_BASE64_TOKEN"
+    [ "$VERBOSE" = "true" ] && echo "Cleaned Base64 Token: $CLEANED_BASE64_TOKEN"
 
     # Ensure proper padding
     PADDING=$((${#CLEANED_BASE64_TOKEN} % 4))
     if [ $PADDING -ne 0 ]; then
         CLEANED_BASE64_TOKEN="${CLEANED_BASE64_TOKEN}$(printf '%0.s=' $(seq 1 $((4 - PADDING))))"
     fi
-    echo "Padded Base64 Token: $CLEANED_BASE64_TOKEN"
+    [ "$VERBOSE" = "true" ] && echo "Padded Base64 Token: $CLEANED_BASE64_TOKEN"
 
     # Decode base64, handle any errors
     DECODED_TOKEN=$(echo "$CLEANED_BASE64_TOKEN" | base64 --decode 2>/dev/null)
@@ -40,7 +41,7 @@ decode_token() {
     fi
 
     # Print the decoded JSON
-    echo "Decoded JSON: $DECODED_TOKEN"
+    [ "$VERBOSE" = "true" ] && echo "Decoded JSON: $DECODED_TOKEN"
 
     # Validate JSON format
     if ! echo "$DECODED_TOKEN" | jq . > /dev/null 2>&1; then
@@ -66,8 +67,8 @@ decode_token() {
     PROOFS_JSON="$PROOFS_JSON]"
 
     # Print total amount for debugging purposes
-    echo "Proofs JSON: $PROOFS_JSON"
-    echo "Total amount to transfer: $TOTAL_AMOUNT sats"
+    [ "$VERBOSE" = "true" ] && echo "Proofs JSON: $PROOFS_JSON"
+    [ "$VERBOSE" = "true" ] && echo "Total amount to transfer: $TOTAL_AMOUNT sats"
 
     # Extract other necessary details from the first proof
     FIRST_PROOF=$(echo "$PROOFS" | head -n 1)
@@ -85,7 +86,7 @@ decode_token() {
 
 # Function to get mint keys
 get_mint_keys() {
-    echo "Getting mint keys..."
+    [ "$VERBOSE" = "true" ] && echo "Getting mint keys..."
     RESPONSE=$(curl -s "$MINT_URL/keys" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: application/json, text/plain, */*' \
@@ -100,12 +101,12 @@ get_mint_keys() {
         -H 'Sec-GPC: 1' \
         -H 'Priority: u=1' \
         -H 'TE: trailers')
-    echo "Mint keys response: $RESPONSE"
+    [ "$VERBOSE" = "true" ] && echo "Mint keys response: $RESPONSE"
 }
 
 # Function to check the token and validate the proof values
 check_token() {
-    echo "Checking token..."
+    [ "$VERBOSE" = "true" ] && echo "Checking token..."
     RESPONSE=$(curl -s -X POST "$MINT_URL/check" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: application/json, text/plain, */*' \
@@ -124,10 +125,10 @@ check_token() {
         --data-raw "{\"proofs\":[{\"secret\":\"$PROOF_SECRET\"}]}")
     
     if echo "$RESPONSE" | jq -e . >/dev/null 2>&1; then
-        echo "Token check response: $RESPONSE"
-        echo "Extracted proof secret: $PROOF_SECRET"
-        echo "Extracted proof id: $PROOF_ID"
-        echo "Extracted proof C: $PROOF_C"
+        [ "$VERBOSE" = "true" ] && echo "Token check response: $RESPONSE"
+        [ "$VERBOSE" = "true" ] && echo "Extracted proof secret: $PROOF_SECRET"
+        [ "$VERBOSE" = "true" ] && echo "Extracted proof id: $PROOF_ID"
+        [ "$VERBOSE" = "true" ] && echo "Extracted proof C: $PROOF_C"
     else
         echo "Error in token check response: $RESPONSE"
         exit 1
@@ -136,7 +137,7 @@ check_token() {
 
 # Function to get lnurl payment request details and extract the amount
 get_lnurl_details() {
-    echo "Getting lnurl details..."
+    [ "$VERBOSE" = "true" ] && echo "Getting lnurl details..."
     LNURL_DETAILS=$(curl -s "$LNURL" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: */*' \
@@ -152,8 +153,8 @@ get_lnurl_details() {
         -H 'Priority: u=1')
     if echo "$LNURL_DETAILS" | jq -e . >/dev/null 2>&1; then
         LNURL_AMOUNT=$(echo $LNURL_DETAILS | jq -r '.maxSendable')
-        echo "LNURL details: $LNURL_DETAILS"
-        echo "Extracted lnurl amount: $LNURL_AMOUNT"
+        [ "$VERBOSE" = "true" ] && echo "LNURL details: $LNURL_DETAILS"
+        [ "$VERBOSE" = "true" ] && echo "Extracted lnurl amount: $LNURL_AMOUNT"
     else
         echo "Error in lnurl details response: $LNURL_DETAILS"
         exit 1
@@ -162,7 +163,7 @@ get_lnurl_details() {
 
 # Function to get the payment request for a specific amount
 get_payment_request() {
-    echo "Getting payment request for amount $TOTAL_AMOUNT..."
+    [ "$VERBOSE" = "true" ] && echo "Getting payment request for amount $TOTAL_AMOUNT..."
     PAYMENT_REQUEST=$(curl -s "$LNURL?amount=$((TOTAL_AMOUNT * 1000))" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: */*' \
@@ -178,12 +179,12 @@ get_payment_request() {
         -H 'Priority: u=4' \
         -H 'TE: trailers')
     PAYMENT_REQUEST=$(echo $PAYMENT_REQUEST | jq -r '.pr')
-    echo "Payment request response: $PAYMENT_REQUEST"
+    [ "$VERBOSE" = "true" ] && echo "Payment request response: $PAYMENT_REQUEST"
 }
 
 # Function to check fees for the payment request
 check_fees() {
-    echo "Checking fees for the payment request..."
+    [ "$VERBOSE" = "true" ] && echo "Checking fees for the payment request..."
     RESPONSE=$(curl -s -X POST "$MINT_URL/checkfees" \
         -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
         -H 'Accept: application/json, text/plain, */*' \
@@ -200,12 +201,12 @@ check_fees() {
         -H 'Priority: u=4' \
         -H 'TE: trailers' \
         --data-raw "{\"pr\":\"$PAYMENT_REQUEST\"}")
-    echo "Check fees response: $RESPONSE"
+    [ "$VERBOSE" = "true" ] && echo "Check fees response: $RESPONSE"
 }
 
 # Function to redeem the token
 redeem_token() {
-  echo "Redeeming token..."
+  [ "$VERBOSE" = "true" ] && echo "Redeeming token..."
   RESPONSE=$(curl -s -X POST "$MINT_URL/melt" \
     -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
     -H 'Accept: application/json, text/plain, */*' \
