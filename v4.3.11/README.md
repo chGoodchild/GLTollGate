@@ -5,7 +5,7 @@ opkg update
 opkg install coreutils-base64
 opkg install libpthread
 opkg install libmicrohttpd
-
+opkg install jq
 ```
 
 
