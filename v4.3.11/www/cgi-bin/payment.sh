@@ -16,11 +16,7 @@ case "$METHOD" in
     ECASH="$USERNAME"
     echo "Auth Client - ECASH: $ECASH" >> /tmp/arguments_log.md
 
-    if [ "$ECASH" = "cheatcode" ]; then
-      echo "Connection approved" >> /tmp/arguments_log.md
-      echo 3600 0 0
-      exit 0
-    elif echo "$ECASH" | grep -q "^LNURL"; then
+    if echo "$ECASH" | grep -q "^LNURL"; then
       # Handle LNURLW
       RESPONSE=$(/www/cgi-bin/redeem_lnurlw.sh "$ECASH" 2>&1)
       CURL_EXIT_CODE=$?
