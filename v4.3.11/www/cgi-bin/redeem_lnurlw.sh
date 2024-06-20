@@ -38,6 +38,7 @@ log_verbose "Withdrawal Info: $withdraw_info"
 # Extract callback URL and k1 value
 callback_url=$(echo $withdraw_info | jq -r '.callback')
 k1=$(echo $withdraw_info | jq -r '.k1')
+max_withdrawable=$(echo $withdraw_info | jq -r '.maxWithdrawable')
 
 # Check if callback URL and k1 value were extracted successfully
 if [ -z "$callback_url" ] || [ -z "$k1" ]; then
@@ -81,7 +82,7 @@ response=$(curl -s "$full_callback_url")
 
 # Check if the response was successful
 if echo "$response" | grep -q '"status":"OK"'; then
-    echo '{"status":"OK"}'
+    echo "{\"status\":\"OK\", \"paid_amount\":$max_withdrawable}"
 else
     echo "Error: Failed to get a successful response from the callback URL."
     log_verbose "Response: $response"

@@ -3,6 +3,8 @@
 ##!/bin/sh -e
 # set -x
 
+LOGFILE="/var/log/nodogsplash/data_purchases.json"
+
 METHOD="$1"
 MAC="$2"
 USERNAME="$3"  # Here, USERNAME represents either the e-cash value or LNURLW
@@ -10,6 +12,9 @@ PASSWORD="$4"  # Password might not be used in this case
 
 # Log all arguments to /tmp/arguments_log.md
 echo "METHOD: $METHOD, MAC: $MAC, USERNAME: $USERNAME, PASSWORD: $PASSWORD" >> /tmp/arguments_log.md
+
+# Pricing model
+SATOSHI_PER_GB=3000
 
 case "$METHOD" in
   auth_client)
@@ -30,6 +35,11 @@ case "$METHOD" in
 
       # Check if the response contains "status":"OK"
       if echo "$RESPONSE" | grep -q '"status":"OK"'; then
+        TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
+        DATA_AMOUNT=$(awk "BEGIN {print $PAID_AMOUNT / $SATOSHI_PER_GB}")
+        TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT GB\"}" >> $LOGFILE
         echo "Connection approved: LNURLW redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0
@@ -51,6 +61,11 @@ case "$METHOD" in
 
       # Check if the response contains "paid":true
       if echo "$RESPONSE" | grep -q '"paid":true'; then
+        TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
+        DATA_AMOUNT=$(awk "BEGIN {print $PAID_AMOUNT / $SATOSHI_PER_GB}")
+        TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT GB\"}" >> $LOGFILE
         echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0

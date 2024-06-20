@@ -222,7 +222,7 @@ redeem_token() {
     -H 'Sec-GPC: 1' \
     -H 'Priority: u=4' \
     -H 'TE: trailers' \
-    --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":$PROOFS_JSON,\"outputs\":[]}")
+    --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":$PROOFS_JSON,\"outputs\":[], \"paid_amount\": $TOTAL_AMOUNT}")
   echo "Redeem response: $RESPONSE"
 }
 
