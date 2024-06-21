@@ -3,7 +3,7 @@
 ##!/bin/sh -e
 # set -x
 
-LOGFILE="/var/log/nodogsplash/data_purchases.json"
+LOGFILE="/var/log/nodogsplash_data_purchases.json"
 
 METHOD="$1"
 MAC="$2"
@@ -14,7 +14,7 @@ PASSWORD="$4"  # Password might not be used in this case
 echo "METHOD: $METHOD, MAC: $MAC, USERNAME: $USERNAME, PASSWORD: $PASSWORD" >> /tmp/arguments_log.md
 
 # Pricing model
-SATOSHI_PER_GB=3000
+MSAT_PER_KB=1
 
 case "$METHOD" in
   auth_client)
@@ -37,9 +37,10 @@ case "$METHOD" in
       if echo "$RESPONSE" | grep -q '"status":"OK"'; then
         TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
-        DATA_AMOUNT=$(awk "BEGIN {print $PAID_AMOUNT / $SATOSHI_PER_GB}")
+        TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
+        DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT GB\"}" >> $LOGFILE
+        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT KB\"}" >> $LOGFILE
         echo "Connection approved: LNURLW redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0
@@ -63,9 +64,10 @@ case "$METHOD" in
       if echo "$RESPONSE" | grep -q '"paid":true'; then
         TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
-        DATA_AMOUNT=$(awk "BEGIN {print $PAID_AMOUNT / $SATOSHI_PER_GB}")
+        TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
+        DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT GB\"}" >> $LOGFILE
+        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT KB\"}" >> $LOGFILE
         echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0
