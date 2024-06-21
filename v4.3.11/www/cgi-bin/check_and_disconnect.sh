@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
+set -x
+
 
 # Path to the nodogsplash data purchases log
 LOGFILE="/var/log/nodogsplash_data_purchases.json"
