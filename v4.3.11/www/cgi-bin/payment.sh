@@ -34,15 +34,24 @@ case "$METHOD" in
       fi
 
       # Check if the response contains "status":"OK"
-      if echo "$response" | jq -e '.status == "OK"' > /dev/null; then
-	echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
+      if echo "$RESPONSE" | jq -e '.status == "OK"' > /dev/null; then
+        echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
         PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
-	echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
-	echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
+        echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
+        echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
         DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\"}" >> $LOGFILE
+        
+        # Read existing JSON, append new entry, and write back
+        if [ -f "$LOGFILE" ]; then
+          jq --arg timestamp "$TIMESTAMP" --arg mac "$MAC" --arg data_amount "$DATA_AMOUNT" \
+            '. += [{"timestamp": $timestamp, "mac": $mac, "data_amount": $data_amount}]' \
+            "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
+        else
+          echo "[{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\"}]" > "$LOGFILE"
+        fi
+        
         echo "Connection approved: LNURLW redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0
@@ -64,14 +73,23 @@ case "$METHOD" in
 
       # Check if the response contains "paid":true
       if echo "$RESPONSE" | jq -e '.paid == true' > /dev/null; then
-	echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
+        echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
         PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.total_amount')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
-	echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
-	echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
+        echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
+        echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
         DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\"}" >> $LOGFILE
+        
+        # Read existing JSON, append new entry, and write back
+        if [ -f "$LOGFILE" ]; then
+          jq --arg timestamp "$TIMESTAMP" --arg mac "$MAC" --arg data_amount "$DATA_AMOUNT" \
+            '. += [{"timestamp": $timestamp, "mac": $mac, "data_amount": $data_amount}]' \
+            "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
+        else
+          echo "[{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\"}]" > "$LOGFILE"
+        fi
+        
         echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
         echo 3600 0 0
         exit 0
