@@ -31,11 +31,12 @@ client_usage=$(get_client_usage)
 
 # Compare and disconnect if necessary
 echo "$client_usage" | while read -r mac downloaded uploaded; do
-  total_data_used=$((downloaded + uploaded))
+  total_data_used=$(echo "$downloaded + $uploaded" | bc)
   total_data_paid=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $2}')
   
-  if [ -n "$total_data_paid" ] && [ "$total_data_used" -gt "$total_data_paid" ]; then
+  if [ -n "$total_data_paid" ] && [ "$(echo "$total_data_used > $total_data_paid" | bc)" -eq 1 ]; then
     echo "Disconnecting $mac: Used $total_data_used KB, Paid for $total_data_paid KB"
     ndsctl deauth "$mac"
   fi
 done
+
