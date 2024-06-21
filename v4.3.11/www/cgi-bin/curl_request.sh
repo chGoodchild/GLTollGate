@@ -82,6 +82,8 @@ decode_token() {
         exit 1
     fi
 
+    # Ensure TOTAL_AMOUNT is set correctly
+    # echo "Amount paid: $TOTAL_AMOUNT sats"
 }
 
 # Function to get mint keys
@@ -207,6 +209,8 @@ check_fees() {
 # Function to redeem the token
 redeem_token() {
   [ "$VERBOSE" = "true" ] && echo "Redeeming token..."
+  
+  # Capture the response without any prefix
   RESPONSE=$(curl -s -X POST "$MINT_URL/melt" \
     -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0' \
     -H 'Accept: application/json, text/plain, */*' \
@@ -223,8 +227,15 @@ redeem_token() {
     -H 'Priority: u=4' \
     -H 'TE: trailers' \
     --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":$PROOFS_JSON,\"outputs\":[], \"paid_amount\": $TOTAL_AMOUNT}")
-  echo "Redeem response: $RESPONSE"
+
+  # Print and log the response separately for debugging
+  # Add TOTAL_AMOUNT to the response JSON using jq
+  MODIFIED_RESPONSE=$(echo "$RESPONSE" | jq --arg total_amount "$TOTAL_AMOUNT" '. + {total_amount: $total_amount}')
+
+  echo "Redeem token response: $MODIFIED_RESPONSE" >> /tmp/arguments_log.md
+  echo $MODIFIED_RESPONSE
 }
+
 
 # Check if token is provided
 if [ -z "$TOKEN" ]; then

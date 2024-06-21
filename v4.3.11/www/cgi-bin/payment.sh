@@ -38,6 +38,8 @@ case "$METHOD" in
         TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
+	echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
+	echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
         DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
         echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT KB\"}" >> $LOGFILE
@@ -61,10 +63,12 @@ case "$METHOD" in
       fi
 
       # Check if the response contains "paid":true
-      if echo "$RESPONSE" | grep -q '"paid":true'; then
+      if echo "$RESPONSE" | jq -e '.paid == true' > /dev/null; then
         TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
+	echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
+	echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
         DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
         echo "{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"token\": \"$TOKEN\", \"data_amount\": \"$DATA_AMOUNT KB\"}" >> $LOGFILE
