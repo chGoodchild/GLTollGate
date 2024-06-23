@@ -11,17 +11,6 @@ LNURL="https://minibits.cash/.well-known/lnurlp/chandran"
 TOKEN="$1"
 VERBOSE="false"
 
-# Function to check if the internet gateway is reachable
-check_internet_gateway() {
-  echo "Checking internet gateway..."
-  if ! ping -c 1 -W 3 google.com > /dev/null 2>&1; then
-    echo "Internet gateway is not reachable. Aborting."
-    echo "Internet gateway is not reachable. Aborting." >> /tmp/arguments_log.md
-    exit 1
-  fi
-  echo "Internet gateway is reachable."
-}
-
 # Function to decode the token and calculate total amount
 decode_token() {
 
@@ -239,8 +228,7 @@ redeem_token() {
     -H 'TE: trailers' \
     --data-raw "{\"pr\":\"$PAYMENT_REQUEST\",\"proofs\":$PROOFS_JSON,\"outputs\":[], \"paid_amount\": $TOTAL_AMOUNT}")
 
-  # Print and log the response separately for debugging
-  # Add TOTAL_AMOUNT to the response JSON using jq
+  # Modify the response JSON to ensure total_amount is treated as an integer
   MODIFIED_RESPONSE=$(echo "$RESPONSE" | jq --argjson total_amount "$TOTAL_AMOUNT" '. + {total_amount: $total_amount}')
 
   echo "Redeem token response: $MODIFIED_RESPONSE" >> /tmp/arguments_log.md
@@ -261,7 +249,6 @@ echo "Curl request - ECASH: $ECASH" >> /tmp/arguments_log.md
 decode_token
 
 # Execute the sequence of requests
-check_internet_gateway
 get_mint_keys
 check_token
 get_lnurl_details

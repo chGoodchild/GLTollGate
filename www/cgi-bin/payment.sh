@@ -22,8 +22,21 @@ fi
 # Pricing model
 MSAT_PER_KB=3
 
+# Function to check if the internet gateway is reachable
+check_internet_gateway() {
+  echo "Checking internet gateway..."
+  if ! ping -c 1 -W 3 google.com > /dev/null 2>&1; then
+    echo "Internet gateway is not reachable. Aborting."
+    echo "Internet gateway is not reachable. Aborting." >> /tmp/arguments_log.md
+    exit 1
+  fi
+  [ "$VERBOSE" = "true" ] && echo "Internet gateway is reachable."
+}
+
 case "$METHOD" in
   auth_client)
+    check_internet_gateway  # Check if the internet gateway is reachable before proceeding
+
     ECASH="$USERNAME"
     echo "Auth Client - ECASH: $ECASH" >> /tmp/arguments_log.md
 
@@ -42,7 +55,7 @@ case "$METHOD" in
       # Check if the response contains "status":"OK"
       if echo "$RESPONSE" | jq -e '.status == "OK"' > /dev/null; then
         echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
-        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.paid_amount')
+        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.total_amount | tonumber')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
         echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
         echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
