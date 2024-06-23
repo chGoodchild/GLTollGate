@@ -1,5 +1,7 @@
-#!/bin/sh -e
-set -x
+#!/bin/sh
+
+# #!/bin/sh -e
+# set -x
 
 
 # Path to the nodogsplash data purchases log
@@ -29,6 +31,9 @@ paid_data=$(get_paid_data)
 # Get the client usage
 client_usage=$(get_client_usage)
 
+# Verbose flag
+VERBOSE=true
+
 # Compare and disconnect if necessary
 echo "$client_usage" | while read -r mac downloaded uploaded; do
   total_data_used=$(awk "BEGIN {print $downloaded + $uploaded}")
@@ -37,6 +42,12 @@ echo "$client_usage" | while read -r mac downloaded uploaded; do
   if [ -n "$total_data_paid" ] && [ "$(awk "BEGIN {print ($total_data_used > $total_data_paid)}")" -eq 1 ]; then
     echo "Disconnecting $mac: Used $total_data_used KB, Paid for $total_data_paid KB"
     ndsctl deauth "$mac"
+  else
+    if [ "$VERBOSE" = true ]; then
+      data_left=$(awk "BEGIN {print $total_data_paid - $total_data_used}")
+      echo "$mac: Used $total_data_used KB, Paid for $total_data_paid KB, Data left $data_left KB"
+    fi
   fi
 done
+
 
