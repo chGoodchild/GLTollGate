@@ -21,6 +21,15 @@ service nodogsplash status
 logread | grep nodogsplash
 ```
 
+# Debugging
+
+```
+ndsctl json
+ndsctl deauth 28:d2:44:64:f1:f7
+service nodogsplash restart
+/www/cgi-bin/./check_and_disconnect.sh
+```
+
 
 # Acknowledgements
 

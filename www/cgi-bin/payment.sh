@@ -4,6 +4,7 @@
 # set -x
 
 LOGFILE="/var/log/nodogsplash_data_purchases.json"
+USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
 METHOD="$1"
 MAC="$2"
@@ -12,6 +13,11 @@ PASSWORD="$4"  # Password might not be used in this case
 
 # Log all arguments to /tmp/arguments_log.md
 echo "METHOD: $METHOD, MAC: $MAC, USERNAME: $USERNAME, PASSWORD: $PASSWORD" >> /tmp/arguments_log.md
+
+# Ensure the usage log file exists
+if [ ! -f "$USAGE_LOGFILE" ]; then
+  echo "{}" > "$USAGE_LOGFILE"
+fi
 
 # Pricing model
 MSAT_PER_KB=3

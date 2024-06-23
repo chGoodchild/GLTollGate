@@ -7,6 +7,9 @@
 # Path to the nodogsplash data purchases log
 LOGFILE="/var/log/nodogsplash_data_purchases.json"
 
+# Path to the nodogsplash data usage log
+USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
+
 # Function to get the total data paid for each MAC address
 get_paid_data() {
   jq -r '.[] | "\(.mac) \(.data_amount)"' "$LOGFILE" | awk '
@@ -22,20 +25,68 @@ get_paid_data() {
 
 # Function to get the current data usage of each client
 get_client_usage() {
-  ndsctl json | jq -r '.clients | to_entries[] | "\(.key) \(.value.downloaded) \(.value.uploaded)"'
+  ndsctl json | jq -r '.clients | to_entries[] | "\(.key) \(.value.downloaded) \(.value.uploaded) \(.value.token)"'
+}
+
+# Function to read the usage log
+read_usage_log() {
+  if [ ! -f "$USAGE_LOGFILE" ]; then
+    echo "{}" > "$USAGE_LOGFILE"
+  fi
+  cat "$USAGE_LOGFILE" | jq '.'
+}
+
+# Function to update the usage log
+update_usage_log() {
+  local mac="$1"
+  local downloaded="$2"
+  local uploaded="$3"
+  local token="$4"
+
+  usage_data=$(read_usage_log)
+
+  new_entry=$(jq -n --arg mac "$mac" --argjson downloaded "$downloaded" --argjson uploaded "$uploaded" --arg token "$token" \
+    '{
+      ($token): {
+        "mac": $mac,
+        "downloaded": $downloaded,
+        "uploaded": $uploaded,
+        "token": $token
+      }
+    }')
+
+  updated_usage=$(echo "$usage_data" | jq --argjson new_entry "$new_entry" \
+    'reduce ($new_entry | to_entries[]) as $i (.; .[$i.key] |= . + $i.value)')
+
+  echo "$updated_usage" > "$USAGE_LOGFILE"
+}
+
+# Function to compare and update the usage log if necessary
+compare_and_update_usage_log() {
+  client_usage=$(get_client_usage)
+
+  echo "$client_usage" | while read -r mac downloaded uploaded token; do
+    current_downloaded=$(jq -r --arg token "$token" '.[$token].downloaded // 0' "$USAGE_LOGFILE")
+    current_uploaded=$(jq -r --arg token "$token" '.[$token].uploaded // 0' "$USAGE_LOGFILE")
+
+    if [ "$downloaded" -gt "$current_downloaded" ] || [ "$uploaded" -gt "$current_uploaded" ]; then
+      update_usage_log "$mac" "$downloaded" "$uploaded" "$token"
+    fi
+  done
 }
 
 # Get the paid data
 paid_data=$(get_paid_data)
 
-# Get the client usage
-client_usage=$(get_client_usage)
+# Get the client usage and update usage log
+compare_and_update_usage_log
 
 # Verbose flag
 VERBOSE=true
 
 # Compare and disconnect if necessary
-echo "$client_usage" | while read -r mac downloaded uploaded; do
+client_usage=$(get_client_usage)
+echo "$client_usage" | while read -r mac downloaded uploaded token; do
   total_data_used=$(awk "BEGIN {print $downloaded + $uploaded}")
   total_data_paid=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $2}')
   
