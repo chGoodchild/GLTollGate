@@ -28,6 +28,8 @@ ndsctl json
 ndsctl deauth 28:d2:44:64:f1:f7
 service nodogsplash restart
 /www/cgi-bin/./check_and_disconnect.sh
+cat /var/log/nodogsplash_data_usage.json
+cat /var/log/nodogsplash_data_purchases.json
 ```
 
 

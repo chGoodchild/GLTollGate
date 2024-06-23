@@ -1,7 +1,7 @@
-#!/bin/sh
+# #!/bin/sh
 
-# #!/bin/sh -e
-# set -x
+#!/bin/sh -e
+set -x
 
 
 # Path to the nodogsplash data purchases log

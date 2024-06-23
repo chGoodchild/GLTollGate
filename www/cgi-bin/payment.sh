@@ -80,7 +80,7 @@ case "$METHOD" in
       # Check if the response contains "paid":true
       if echo "$RESPONSE" | jq -e '.paid == true' > /dev/null; then
         echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
-        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.total_amount')
+        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.total_amount | tonumber')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
         echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
         echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
