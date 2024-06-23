@@ -1,0 +1,13 @@
+
+config service 'mwan3'
+    option mode '0'
+    option flush_track '0'
+
+config interface 'wan'
+    option track_proto '0'
+
+config interface 'wwan'
+    option track_proto '0'
+
+config interface 'tethering'
+    option track_proto '0'

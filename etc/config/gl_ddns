@@ -1,0 +1,4 @@
+config service 'ddns'
+    option enabled_ssh '0'
+    option http_port '80'
+    option https_port '443'

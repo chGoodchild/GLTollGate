@@ -1,0 +1,15 @@
+
+config globals 'globals'
+	option enabled '0'
+	option origin_ula_prefix 'fd26:0dee:f3a9::/48'
+
+config interface 'wan'
+	option interface 'wan'
+	option addrmode 'auto'
+	option dnsmode 'auto'
+
+config interface 'lan'
+	option mode 'nat6'
+	option dnsmode 'auto'
+	option lan_ip6addr 'fd26:0dee:f3a9::1/64'
+

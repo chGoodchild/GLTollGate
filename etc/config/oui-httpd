@@ -1,0 +1,15 @@
+
+config oui-httpd 'main'
+	option security_rule '1'
+	option max_login_fail '10'
+	option login_fail_wait '600'
+	option lang 'en'
+	option inited '1'
+
+config no-auth-methods
+	option object 'ui'
+	list method 'get_lang'
+	list method 'load_locales'
+	list method 'check_initialized'
+	list method 'init'
+

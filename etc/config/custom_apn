@@ -1,0 +1,2 @@
+config apn verizon
+	option apns '["vzwinternet", "v5ga01internet"]'

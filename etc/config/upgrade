@@ -1,0 +1,5 @@
+config service 'general'
+	option keep_config '0'
+	option keep_package '0'
+	option prompt  '1'
+	option rc_upgrade '0'

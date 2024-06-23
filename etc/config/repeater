@@ -1,0 +1,21 @@
+
+config main
+	option auto '1'
+	option level '6'
+	option scan_interval '60'
+	option switch_interval '30'
+	option disabled '0'
+
+config network
+	option ssid 'GLAR300M14dNOR'
+	option key 'keepout!'
+	option proto 'dhcp'
+	option metric '20'
+
+config network
+	option ssid 'NOS-F7D6'
+	option key 'WLXAU926'
+	option proto 'dhcp'
+	option metric '20'
+	option selected '1'
+

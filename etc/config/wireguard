@@ -1,0 +1,14 @@
+config proxy 'global'
+	option global_proxy '1'
+
+config providers 'AzireVPN'
+	option auth_type '1'
+	option procedure '0'
+
+config providers 'Mullvad'
+	option auth_type '2'
+	option procedure '1'
+
+config providers 'FromApp'
+	option auth_type '1'
+	option procedure '0'

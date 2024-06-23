@@ -1,0 +1,29 @@
+config qos general
+    option enable '0'
+    option model 'cake'
+    option upload '1000'
+    option download '1000'
+    option sum '0'
+
+
+config wan
+    option upload '1000'
+    option download '1000'
+
+config wwan
+    option upload '1000'
+    option download '1000'
+
+config tethering
+    option upload '1000'
+    option download '1000'
+
+config modem
+    option upload '1000'
+    option download '1000'
+
+#config queue '9483c4077CF1'
+#    option name 'android'
+#    option mac '94:83:C4:07:7C:F1'
+#    option upload '500'
+#    option download '500'

@@ -1,0 +1,13 @@
+config policy 'global'
+        option kill_switch '0'
+        option wan_access '0'
+        option service_policy '1'
+        option vpn_server_policy '1'
+
+
+config service 'route_policy'
+	option proxy_mode '0'
+
+config policy 'vlan'
+	option private '1'
+	option guest '1'

@@ -1,0 +1,2 @@
+config globals 'crash'
+	option record_size '8192'

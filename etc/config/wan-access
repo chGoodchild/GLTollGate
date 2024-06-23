@@ -1,0 +1,10 @@
+config main
+    option whitelist 0
+
+#config whitelist
+#   option name 'test1'
+#   option ipaddr '192.168.1.2'
+
+#config whitelist
+#   option name 'test2'
+#   option ipaddr '192.168.12.0/24'

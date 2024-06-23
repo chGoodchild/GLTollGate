@@ -1,0 +1,9 @@
+
+config service 'hardware'
+
+config switch 'switch'
+
+config network 'network'
+	option wan 'eth0'
+	option lan 'eth1'
+

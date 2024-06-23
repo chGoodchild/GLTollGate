@@ -1,0 +1,9 @@
+config providers
+	option provider 'NordVPN'
+	option auth_type '1'
+	option procedure '1'
+
+config providers
+	option provider 'FromApp'
+	option auth_type '1'
+	option procedure '0'

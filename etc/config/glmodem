@@ -1,0 +1,5 @@
+config global 'global'
+	option log_level '0'
+
+config switch 'sim'
+	option sim_num '1'

@@ -1,0 +1,5 @@
+
+config led 'global'
+	option led_enable '1'
+	option led_daemon '0'
+

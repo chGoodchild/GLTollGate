@@ -1,3 +1,0 @@
-Host 192.168.8.1
-    HostkeyAlgorithms +ssh-rsa
-    PubkeyAcceptedAlgorithms +ssh-rsa

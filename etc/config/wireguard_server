@@ -1,0 +1,10 @@
+config servers 'main_server'
+	option address_v4 '10.0.0.1/24'
+	option address_v6 'fd00:db8:0:abc::1/64'
+	option port '51820'
+	option access 'DROP'
+	option fwmark '0x8000'
+	option ipv6_enable '0'
+	option client_to_client '0'
+	option masq '1'
+
