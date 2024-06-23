@@ -9,7 +9,17 @@ opkg install jq
 opkg install nlbwmon
 ```
 
-./redeem_lnurlw.sh LNURL1DP68GURN8GHJ7ER9D4HJUMRWVF5HGUEWVDHK6TMHD96XSERJV9MJ7CTSDYHHVVF0D3H82UNV9A45SWZDWPFKYST8FEHNYET2DPJ4GKJ2W3AXZWAGEQ6
+# Setup
+
+```
+scp nodogsplash_5.0.0-1_mips_24kc.ipk root@192.168.8.1:/tmp/
+
+opkg remove nodogsplash
+opkg install nodogsplash_5.0.0-1_mips_24kc.ipk
+service nodogsplash start
+service nodogsplash status
+logread | grep nodogsplash
+```
 
 
 # Acknowledgements
