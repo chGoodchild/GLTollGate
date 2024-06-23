@@ -12,13 +12,14 @@ USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
 # Function to get the total data paid for each MAC address
 get_paid_data() {
-  jq -r '.[] | "\(.mac) \(.data_amount)"' "$LOGFILE" | awk '
+  jq -r '.[] | "\(.mac) \(.data_amount) \(.token // empty)"' "$LOGFILE" | awk '
     {
       mac[$1] += $2
+      token[$1] = $3
     }
     END {
       for (m in mac) {
-        print m, mac[m]
+        print m, mac[m], token[m]
       }
     }'
 }
@@ -61,6 +62,15 @@ update_usage_log() {
   echo "$updated_usage" > "$USAGE_LOGFILE"
 }
 
+# Function to update token in the purchases log if necessary
+update_token_in_purchases_log() {
+  local mac="$1"
+  local token="$2"
+
+  jq --arg mac "$mac" --arg token "$token" '
+    map(if .mac == $mac and (.token == null or .token == "") then .token = $token else . end)' "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
+}
+
 # Function to compare and update the usage log if necessary
 compare_and_update_usage_log() {
   client_usage=$(get_client_usage)
@@ -89,7 +99,12 @@ client_usage=$(get_client_usage)
 echo "$client_usage" | while read -r mac downloaded uploaded token; do
   total_data_used=$(awk "BEGIN {print $downloaded + $uploaded}")
   total_data_paid=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $2}')
+  associated_token=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $3}')
   
+  if [ -z "$associated_token" ]; then
+    update_token_in_purchases_log "$mac" "$token"
+  fi
+
   if [ -n "$total_data_paid" ] && [ "$(awk "BEGIN {print ($total_data_used > $total_data_paid)}")" -eq 1 ]; then
     echo "Disconnecting $mac: Used $total_data_used KB, Paid for $total_data_paid KB"
     ndsctl deauth "$mac"
