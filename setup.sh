@@ -22,7 +22,7 @@ fi
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/nodogsplash_installed ]"; then
     sshpass -p "$ROUTER_PASSWORD" scp nodogsplash_5.0.0-1_mips_24kc.ipk $ROUTER_USER@$ROUTER_IP:/tmp/
     sshpass -p "$ROUTER_PASSWORD" scp wrtbwmon_0.36_all.ipk $ROUTER_USER@$ROUTER_IP:/tmp/
-    sshpass -p "$ROUTER_PASSWORD" ssh -tt $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP << 'ENDSSH'
 opkg remove nodogsplash
 opkg install /tmp/nodogsplash_5.0.0-1_mips_24kc.ipk
 service nodogsplash start
@@ -34,7 +34,7 @@ fi
 
 # Step 2: Install additional packages including iptables-legacy and wrtbwmon
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/additional_packages_installed ]"; then
-    sshpass -p "$ROUTER_PASSWORD" ssh -tt $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP << 'ENDSSH'
 opkg update
 opkg install coreutils-base64
 opkg install libpthread
@@ -64,7 +64,7 @@ if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR
 fi
 
 # Step 6: Setup and update wrtbwmon database
-sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
+sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP << 'ENDSSH'
 wrtbwmon setup /tmp/usage.db
 wrtbwmon update /tmp/usage.db
 ENDSSH
