@@ -41,6 +41,15 @@ ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
 ln -sf /usr/sbin/ip6tables-legacy /usr/sbin/ip6tables
 ln -sf /usr/sbin/arptables-legacy /usr/sbin/arptables
 ln -sf /usr/sbin/ebtables-legacy /usr/sbin/ebtables
+
+wrtbwmon setup /tmp/usage.db
+wrtbwmon update /tmp/usage.db
+cat /tmp/usage.db
+ndsctl json
+iperf3 -c $IPERF_SERVER -n $NUM_BYTES
+wrtbwmon update /tmp/usage.db
+cat /tmp/usage.db
+ndsctl json
 ```
 
 

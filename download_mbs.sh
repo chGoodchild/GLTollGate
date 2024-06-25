@@ -30,7 +30,7 @@ get_wrtbwmon_data() {
 
 # Function to get downloaded and uploaded data from ndsctl json
 get_ndsctl_data() {
-  sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "ndsctl json" | jq '.clients[] | .downloaded, .uploaded' | awk '{down+=$1; up+=$2} END {print down, up}'
+  sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "ndsctl json" | jq -c '.clients[] | select(.mac == "28:d2:44:64:f1:f7") | .downloaded, .uploaded' | awk '{down+=$1; up+=$2} END {print down, up}'
 }
 
 # Retrieve initial data usage from both wrtbwmon and ndsctl
