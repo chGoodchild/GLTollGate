@@ -32,16 +32,9 @@ cat /var/log/nodogsplash_data_usage.json
 cat /var/log/nodogsplash_data_purchases.json
 ```
 
-# iptables
+# wrtbwmon
 
 ```
-opkg install iptables-legacy
-
-ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
-ln -sf /usr/sbin/ip6tables-legacy /usr/sbin/ip6tables
-ln -sf /usr/sbin/arptables-legacy /usr/sbin/arptables
-ln -sf /usr/sbin/ebtables-legacy /usr/sbin/ebtables
-
 wrtbwmon setup /tmp/usage.db
 wrtbwmon update /tmp/usage.db
 cat /tmp/usage.db
@@ -55,5 +48,9 @@ ndsctl json
 
 # Acknowledgements
 
-Special thanks to the nym who came up with this idea, to npub1elta7cneng3w8p9y4dw633qzdjr4kyvaparuyuttyrx6e8xp7xnq32cume for helping me and everyone who controls npub1u3w2g4s9gpefczy3gf8tah4ghum5tav56hcn62jpft6jw76ax3fqj9wxcv for encouraging me to work on the right things.
+Special thanks to the `nym` who came up with this idea, to
+`npub1elta7cneng3w8p9y4dw633qzdjr4kyvaparuyuttyrx6e8xp7xnq32cume` for
+helping me and everyone who controls
+`npub1u3w2g4s9gpefczy3gf8tah4ghum5tav56hcn62jpft6jw76ax3fqj9wxcv` for
+encouraging me to work on the right things.
 
