@@ -33,10 +33,14 @@ opkg install coreutils-base64
 opkg install libpthread
 opkg install libmicrohttpd
 opkg install jq
-opkg install nlbwmon
 touch /tmp/markers/additional_packages_installed
 ENDSSH
 fi
+
+# opkg install curl
+# opkg install libmbedtls14 libmbedx509-1 libmbedcrypto7
+# curl -o /opt/wrtbwmon https://raw.githubusercontent.com/brvphoenix/wrtbwmon/master/wrtbwmon
+# chmod +x /opt/wrtbwmon
 
 # Step 3: Copy nodogsplash config
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/nodogsplash_config_copied ]"; then
