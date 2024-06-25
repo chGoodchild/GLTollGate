@@ -11,17 +11,17 @@ MARKER_DIR="/tmp/markers"
 # Ensure marker directory exists
 sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "mkdir -p $MARKER_DIR"
 
-# Step 4: Copy CGI scripts and make them executable
+# Step 0: Prepare cgi-scripts because nodogsplash depends on them
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/cgi_scripts_copied ]"; then
     sshpass -p "$ROUTER_PASSWORD" scp -r www/cgi-bin/*.sh $ROUTER_USER@$ROUTER_IP:/www/cgi-bin/.
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "chmod +x /www/cgi-bin/*.sh"
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/cgi_scripts_copied"
 fi
 
-# Step 1: Copy the nodogsplash package and install it
+# Step 1: Install nodogsplash package
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/nodogsplash_installed ]"; then
     sshpass -p "$ROUTER_PASSWORD" scp nodogsplash_5.0.0-1_mips_24kc.ipk $ROUTER_USER@$ROUTER_IP:/tmp/
-    
+    sshpass -p "$ROUTER_PASSWORD" scp wrtbwmon_0.36_all.ipk $ROUTER_USER@$ROUTER_IP:/tmp/
     sshpass -p "$ROUTER_PASSWORD" ssh -tt $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
 opkg remove nodogsplash
 opkg install /tmp/nodogsplash_5.0.0-1_mips_24kc.ipk
@@ -32,7 +32,7 @@ touch /tmp/markers/nodogsplash_installed
 ENDSSH
 fi
 
-# Step 2: Install additional packages
+# Step 2: Install additional packages including iptables-legacy and wrtbwmon
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/additional_packages_installed ]"; then
     sshpass -p "$ROUTER_PASSWORD" ssh -tt $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
 opkg update
@@ -41,14 +41,14 @@ opkg install libpthread
 opkg install libmicrohttpd
 opkg install jq
 opkg install iptables-legacy
+ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
+ln -sf /usr/sbin/ip6tables-legacy /usr/sbin/ip6tables
+ln -sf /usr/sbin/arptables-legacy /usr/sbin/arptables
+ln -sf /usr/sbin/ebtables-legacy /usr/sbin/ebtables
+opkg install /tmp/wrtbwmon_0.36_all.ipk
 touch /tmp/markers/additional_packages_installed
 ENDSSH
 fi
-
-# opkg install curl
-# opkg install libmbedtls14 libmbedx509-1 libmbedcrypto7
-# curl -o /opt/wrtbwmon https://raw.githubusercontent.com/brvphoenix/wrtbwmon/master/wrtbwmon
-# chmod +x /opt/wrtbwmon
 
 # Step 3: Copy nodogsplash config
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/nodogsplash_config_copied ]"; then
@@ -62,4 +62,12 @@ if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/nodogsplash_dir_copied"
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "service nodogsplash restart"
 fi
+
+# Step 6: Setup and update wrtbwmon database
+sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
+wrtbwmon setup /tmp/usage.db
+wrtbwmon update /tmp/usage.db
+ENDSSH
+
+echo "Setup completed."
 
