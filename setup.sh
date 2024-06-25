@@ -33,6 +33,7 @@ opkg install coreutils-base64
 opkg install libpthread
 opkg install libmicrohttpd
 opkg install jq
+opkg install iptables-legacy
 touch /tmp/markers/additional_packages_installed
 ENDSSH
 fi

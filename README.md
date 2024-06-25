@@ -32,6 +32,17 @@ cat /var/log/nodogsplash_data_usage.json
 cat /var/log/nodogsplash_data_purchases.json
 ```
 
+# iptables
+
+```
+opkg install iptables-legacy
+
+ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
+ln -sf /usr/sbin/ip6tables-legacy /usr/sbin/ip6tables
+ln -sf /usr/sbin/arptables-legacy /usr/sbin/arptables
+ln -sf /usr/sbin/ebtables-legacy /usr/sbin/ebtables
+```
+
 
 # Acknowledgements
 
