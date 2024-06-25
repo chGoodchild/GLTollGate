@@ -25,20 +25,19 @@ setup_wrtbwmon() {
 
 # Function to get data usage from wrtbwmon
 get_wrtbwmon_data() {
-  sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "cat $DATABASE_FILE" | grep -v "^#"
+  sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "cat $DATABASE_FILE" | grep -v "^#" | awk -F',' '{total_in+=$4; total_out+=$5} END {print total_in, total_out}'
 }
 
 # Function to get downloaded and uploaded data from ndsctl json
 get_ndsctl_data() {
-  sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "ndsctl json" | jq '.clients[] | .downloaded, .uploaded' | awk '{s+=$1} END {print s}'
+  sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "ndsctl json" | jq '.clients[] | .downloaded, .uploaded' | awk '{down+=$1; up+=$2} END {print down, up}'
 }
 
 # Retrieve initial data usage from both wrtbwmon and ndsctl
 setup_wrtbwmon
-sleep 2  # Ensure wrtbwmon setup is complete
 initial_wrtbwmon_data=$(get_wrtbwmon_data)
-initial_wrtbwmon_downloaded=$(echo "$initial_wrtbwmon_data" | awk -F',' '{s+=$4} END {print s}')
-initial_wrtbwmon_uploaded=$(echo "$initial_wrtbwmon_data" | awk -F',' '{s+=$5} END {print s}')
+initial_wrtbwmon_downloaded=$(echo $initial_wrtbwmon_data | awk '{print $1}')
+initial_wrtbwmon_uploaded=$(echo $initial_wrtbwmon_data | awk '{print $2}')
 
 initial_ndsctl_data=$(get_ndsctl_data)
 initial_ndsctl_downloaded=$(echo $initial_ndsctl_data | awk '{print $1}')
@@ -51,22 +50,15 @@ echo "Initial ndsctl data: downloaded = $initial_ndsctl_downloaded, uploaded = $
 echo "Running iperf3 to download $NUM_MB MB"
 iperf3 -c $IPERF_SERVER -n $NUM_BYTES
 
-# Wait for a few seconds to ensure ndsctl updates its records
-sleep 5
-
 # Update wrtbwmon and retrieve final data usage
 setup_wrtbwmon
-sleep 2  # Ensure wrtbwmon update is complete
 final_wrtbwmon_data=$(get_wrtbwmon_data)
-final_wrtbwmon_downloaded=$(echo "$final_wrtbwmon_data" | awk -F',' '{s+=$4} END {print s}')
-final_wrtbwmon_uploaded=$(echo "$final_wrtbwmon_data" | awk -F',' '{s+=$5} END {print s}')
+final_wrtbwmon_downloaded=$(echo $final_wrtbwmon_data | awk '{print $1}')
+final_wrtbwmon_uploaded=$(echo $final_wrtbwmon_data | awk '{print $2}')
 
 final_ndsctl_data=$(get_ndsctl_data)
 final_ndsctl_downloaded=$(echo $final_ndsctl_data | awk '{print $1}')
 final_ndsctl_uploaded=$(echo $final_ndsctl_data | awk '{print $2}')
-
-# Debug: Print final ndsctl data
-echo "Final ndsctl data: downloaded = $final_ndsctl_downloaded, uploaded = $final_ndsctl_uploaded"
 
 # Calculate data consumed for both wrtbwmon and ndsctl
 wrtbwmon_downloaded_consumed=$((final_wrtbwmon_downloaded - initial_wrtbwmon_downloaded))
