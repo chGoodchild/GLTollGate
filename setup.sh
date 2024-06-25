@@ -25,6 +25,13 @@ touch /tmp/markers/nodogsplash_installed
 ENDSSH
 fi
 
+# Step 4: Copy CGI scripts and make them executable
+if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/cgi_scripts_copied ]"; then
+    sshpass -p "$ROUTER_PASSWORD" scp -r www/cgi-bin/*.sh $ROUTER_USER@$ROUTER_IP:/www/cgi-bin/.
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "chmod +x /www/cgi-bin/*.sh"
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/cgi_scripts_copied"
+fi
+
 # Step 2: Install additional packages
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/additional_packages_installed ]"; then
     sshpass -p "$ROUTER_PASSWORD" ssh -tt $ROUTER_USER@$ROUTER_IP <<'ENDSSH'
@@ -47,13 +54,6 @@ fi
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/nodogsplash_config_copied ]"; then
     sshpass -p "$ROUTER_PASSWORD" scp -r etc/config/nodogsplash $ROUTER_USER@$ROUTER_IP:/etc/config/.
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/nodogsplash_config_copied"
-fi
-
-# Step 4: Copy CGI scripts and make them executable
-if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/cgi_scripts_copied ]"; then
-    sshpass -p "$ROUTER_PASSWORD" scp -r www/cgi-bin/*.sh $ROUTER_USER@$ROUTER_IP:/www/cgi-bin/.
-    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "chmod +x /www/cgi-bin/*.sh"
-    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/cgi_scripts_copied"
 fi
 
 # Step 5: Copy nodogsplash directory
