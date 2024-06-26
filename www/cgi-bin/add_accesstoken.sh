@@ -36,13 +36,13 @@ update_usage_log_with_purchases() {
   done
 }
 
-# Function to remove elements without tokens
+# Function to remove elements without tokens or with token "null"
 remove_elements_without_tokens() {
-  # Remove elements without tokens in the purchase log
-  jq 'map(select(.token != ""))' "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
+  # Remove elements without tokens or with token "null" in the purchase log
+  jq 'map(select(.token != "" and .token != "null"))' "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
 
-  # Remove elements without tokens in the usage log
-  jq 'with_entries(select(.value.token != ""))' "$USAGE_LOGFILE" > "${USAGE_LOGFILE}.tmp" && mv "${USAGE_LOGFILE}.tmp" "$USAGE_LOGFILE"
+  # Remove elements without tokens or with token "null" in the usage log
+  jq 'with_entries(select(.value.token != "" and .value.token != "null"))' "$USAGE_LOGFILE" > "${USAGE_LOGFILE}.tmp" && mv "${USAGE_LOGFILE}.tmp" "$USAGE_LOGFILE"
 }
 
 # Main
