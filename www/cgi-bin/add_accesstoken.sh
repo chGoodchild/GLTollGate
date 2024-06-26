@@ -1,5 +1,7 @@
-#!/bin/sh -e
-set -x
+#!/bin/sh
+
+# #!/bin/sh -e
+# set -x
 
 LOGFILE="/var/log/nodogsplash_data_purchases.json"
 USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"

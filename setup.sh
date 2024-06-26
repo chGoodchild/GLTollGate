@@ -56,18 +56,36 @@ if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/nodogsplash_config_copied"
 fi
 
-# Step 5: Copy nodogsplash directory
+# Step 4: Copy nodogsplash directory
 if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/nodogsplash_dir_copied ]"; then
     sshpass -p "$ROUTER_PASSWORD" scp -r etc/nodogsplash/ $ROUTER_USER@$ROUTER_IP:/etc/.
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch $MARKER_DIR/nodogsplash_dir_copied"
     sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "service nodogsplash restart"
 fi
 
-# Step 6: Setup and update wrtbwmon database
+# Step 5: Setup and update wrtbwmon database
 sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP << 'ENDSSH'
 wrtbwmon setup /tmp/usage.db
 wrtbwmon update /tmp/usage.db
 ENDSSH
+
+# Step 6: Copy the procd init script
+if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/procd_service_setup ]"; then
+    sshpass -p "$ROUTER_PASSWORD" scp etc/init.d/check_time_and_disconnect $ROUTER_USER@$ROUTER_IP:/etc/init.d/
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP << 'ENDSSH'
+chmod +x /etc/init.d/check_time_and_disconnect
+/etc/init.d/check_time_and_disconnect enable
+/etc/init.d/check_time_and_disconnect start
+touch /tmp/markers/procd_service_setup
+ENDSSH
+fi
+
+# Step 7: Setup crontab to ensure the service is running
+if ! sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "[ -f $MARKER_DIR/crontab_setup ]"; then
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "echo '* * * * * /etc/init.d/check_time_and_disconnect start' >> /etc/crontabs/root"
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "/etc/init.d/cron restart"
+    sshpass -p "$ROUTER_PASSWORD" ssh $ROUTER_USER@$ROUTER_IP "touch /tmp/markers/crontab_setup"
+fi
 
 echo "Setup completed."
 

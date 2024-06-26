@@ -1,7 +1,7 @@
-# #!/bin/sh
+#!/bin/sh
 
-#!/bin/sh -e
-set -x
+# #!/bin/sh -e
+# set -x
 
 LOGFILE="/var/log/nodogsplash_data_purchases.json"
 USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
@@ -68,7 +68,7 @@ disconnect_clients_if_exceeded_time() {
   echo "Client Usage: $client_usage"  # Debugging line
 
   echo "$client_usage" | while read -r mac duration token; do
-    associated_entry=$(echo "$paid_data" | awk -v token="$token" '$4 == token {print $0}')
+    associated_entry=$(echo "$paid_data" | awk -v token="$token" '$4 == token {print $0}' | head -n 1)
     session_time=$(echo "$associated_entry" | awk '{print $3}')
     echo "Checking MAC: $mac, Duration: $duration, Token: $token, Session Time: $session_time"
 

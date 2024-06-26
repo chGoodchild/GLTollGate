@@ -1,0 +1,1 @@
+* * * * * systemctl is-active --quiet check_time_and_disconnect.service || systemctl restart check_time_and_disconnect.service
