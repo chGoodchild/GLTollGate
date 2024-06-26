@@ -8,17 +8,16 @@ USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
 # Function to get the total data paid for each MAC address
 get_paid_data() {
-  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token // empty)"' "$LOGFILE")
+  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime)"' "$LOGFILE")
   echo "jq output: $data"  # Debugging line
   echo "$data" | awk '
   {
     mac[$1] += $2
     sessiontime[$1] = $3
-    token[$1] = $4
   }
   END {
     for (m in mac) {
-      print m, mac[m], sessiontime[m], token[m]
+      print m, mac[m], sessiontime[m]
     }
   }'
 }
@@ -27,7 +26,8 @@ compare_and_update_usage_log() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
 
   echo "$client_usage" | while read -r mac duration token; do
-    current_duration=$(jq -r --arg token "$token" '.[$token].duration // 0' "$USAGE_LOGFILE")
+    current_duration=$(jq -r --arg mac "$mac" '.[] | select(.mac == $mac) | .duration // 0' "$USAGE_LOGFILE")
+    echo "Current Duration: $current_duration"  # Debugging line
 
     if [ "$duration" -gt "$current_duration" ]; then
       update_usage_log "$mac" "$duration" "$token"
@@ -63,8 +63,21 @@ read_usage_log() {
   usage_data=$(cat "$USAGE_LOGFILE")
 }
 
+# Update purchase log with token if missing
+update_purchase_log_with_token() {
+  client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.token)"')
+  echo "Updating Purchase Log with Tokens"  # Debugging line
+
+  echo "$client_usage" | while read -r mac token; do
+    jq --arg mac "$mac" --arg token "$token" '
+    map(if .mac == $mac and (.token | length) == 0 then .token = $token else . end)
+    ' "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
+  done
+}
+
 disconnect_clients_if_exceeded_time() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
+  echo "Client Usage: $client_usage"  # Debugging line
 
   echo "$client_usage" | while read -r mac duration token; do
     associated_token=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $4}')
@@ -86,5 +99,6 @@ disconnect_clients_if_exceeded_time() {
 paid_data=$(get_paid_data)
 echo "Paid Data: $paid_data"
 compare_and_update_usage_log
+update_purchase_log_with_token
 disconnect_clients_if_exceeded_time
 
