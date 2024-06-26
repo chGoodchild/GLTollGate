@@ -23,13 +23,13 @@ get_paid_data() {
 compare_and_update_usage_log() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
 
-  while read -r mac duration token; do
+  echo "$client_usage" | while read -r mac duration token; do
     current_duration=$(jq -r --arg token "$token" '.[$token].duration // 0' "$USAGE_LOGFILE")
 
     if [ "$duration" -gt "$current_duration" ]; then
       update_usage_log "$mac" "$duration" "$token"
     fi
-  done <<< "$client_usage"
+  done
 }
 
 update_usage_log() {
@@ -63,7 +63,7 @@ read_usage_log() {
 disconnect_clients_if_exceeded_time() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
 
-  while read -r mac duration token; do
+  echo "$client_usage" | while read -r mac duration token; do
     associated_token=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $3}')
 
     if [ -z "$associated_token" ]; then
@@ -76,7 +76,7 @@ disconnect_clients_if_exceeded_time() {
       ndsctl deauth "$mac"
       echo "$mac: Disconnected after $duration seconds, Session time limit $session_time seconds"
     fi
-  done <<< "$client_usage"
+  done
 }
 
 # Main
