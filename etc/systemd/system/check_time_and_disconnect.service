@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Time and Disconnect Service
+After=network.target
+
+[Service]
+ExecStart=/www/cgi-bin/check_time_and_disconnect_service.sh
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
