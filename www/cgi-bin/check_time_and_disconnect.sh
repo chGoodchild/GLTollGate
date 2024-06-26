@@ -8,17 +8,19 @@ USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
 # Function to get the total data paid for each MAC address
 get_paid_data() {
-  jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token // empty)"' "$LOGFILE" | awk '
-    {
-      mac[$1] += $2
-      sessiontime[$1] = $3
-      token[$1] = $4
+  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token // empty)"' "$LOGFILE")
+  echo "jq output: $data"  # Debugging line
+  echo "$data" | awk '
+  {
+    mac[$1] += $2
+    sessiontime[$1] = $3
+    token[$1] = $4
+  }
+  END {
+    for (m in mac) {
+      print m, mac[m], sessiontime[m], token[m]
     }
-    END {
-      for (m in mac) {
-        print m, mac[m], sessiontime[m], token[m]
-      }
-    }'
+  }'
 }
 
 compare_and_update_usage_log() {
