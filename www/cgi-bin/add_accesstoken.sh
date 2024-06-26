@@ -16,5 +16,25 @@ update_purchase_log_with_token() {
   done
 }
 
+# Function to update usage log with entries from purchase log
+update_usage_log_with_purchases() {
+  purchases=$(jq -r '.[] | "\(.mac) \(.token)"' "$LOGFILE")
+  echo "Updating Usage Log with Purchases"  # Debugging line
+
+  echo "$purchases" | while read -r mac token; do
+    current_entry=$(jq --arg token "$token" '.[$token] // empty' "$USAGE_LOGFILE")
+    if [ -z "$current_entry" ]; then
+      jq --arg mac "$mac" --arg token "$token" '
+      .[$token] = {
+        "mac": $mac,
+        "duration": 0,
+        "token": $token
+      }' "$USAGE_LOGFILE" > "${USAGE_LOGFILE}.tmp" && mv "${USAGE_LOGFILE}.tmp" "$USAGE_LOGFILE"
+    fi
+  done
+}
+
 # Main
 update_purchase_log_with_token
+update_usage_log_with_purchases
+

@@ -6,19 +6,17 @@ set -x
 LOGFILE="/var/log/nodogsplash_data_purchases.json"
 USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
-# Function to get the total data paid for each MAC address
+# Function to get the total data paid for each token
 get_paid_data() {
-  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token // empty)"' "$LOGFILE")
+  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token)"' "$LOGFILE")
   echo "jq output: $data"  # Debugging line
   echo "$data" | awk '
   {
-    mac[$1] += $2
-    sessiontime[$1] = $3
-    token[$1] = $4
+    token[$4] = $0
   }
   END {
-    for (m in mac) {
-      print m, mac[m], sessiontime[m], token[m]
+    for (t in token) {
+      print token[t]
     }
   }'
 }
@@ -28,7 +26,7 @@ compare_and_update_usage_log() {
   echo "Client Usage: $client_usage"  # Debugging line
 
   echo "$client_usage" | while read -r mac duration token; do
-    current_duration=$(jq -r --arg mac "$mac" '.[] | select(.mac == $mac) | .duration // 0' "$USAGE_LOGFILE")
+    current_duration=$(jq -r --arg token "$token" '.[$token].duration // 0' "$USAGE_LOGFILE")
     echo "Current Duration: $current_duration"  # Debugging line
 
     if [ "$duration" -gt "$current_duration" ]; then
@@ -70,11 +68,11 @@ disconnect_clients_if_exceeded_time() {
   echo "Client Usage: $client_usage"  # Debugging line
 
   echo "$client_usage" | while read -r mac duration token; do
-    associated_token=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $4}')
-    session_time=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $3}')
-    echo "Checking MAC: $mac, Duration: $duration, Token: $token, Associated Token: $associated_token, Session Time: $session_time"
+    associated_entry=$(echo "$paid_data" | awk -v token="$token" '$4 == token {print $0}')
+    session_time=$(echo "$associated_entry" | awk '{print $3}')
+    echo "Checking MAC: $mac, Duration: $duration, Token: $token, Session Time: $session_time"
 
-    if [ -z "$associated_token" ]; then
+    if [ -z "$associated_entry" ]; then
       continue
     fi
 
@@ -86,7 +84,7 @@ disconnect_clients_if_exceeded_time() {
 }
 
 # Main
-/www/cgi-bin/update_purchase_log_with_token.sh
+/www/cgi-bin/./add_accesstoken.sh
 paid_data=$(get_paid_data)
 echo "Paid Data: $paid_data"
 compare_and_update_usage_log
