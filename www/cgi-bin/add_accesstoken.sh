@@ -9,7 +9,7 @@ USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 # Function to update purchase log with token if missing
 update_purchase_log_with_token() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.token)"')
-  echo "Updating Purchase Log with Tokens"  # Debugging line
+  # echo "Updating Purchase Log with Tokens"  # Debugging line
 
   echo "$client_usage" | while read -r mac token; do
     jq --arg mac "$mac" --arg token "$token" '
@@ -21,7 +21,7 @@ update_purchase_log_with_token() {
 # Function to update usage log with entries from purchase log
 update_usage_log_with_purchases() {
   purchases=$(jq -r '.[] | "\(.mac) \(.token)"' "$LOGFILE")
-  echo "Updating Usage Log with Purchases"  # Debugging line
+  # echo "Updating Usage Log with Purchases"  # Debugging line
 
   echo "$purchases" | while read -r mac token; do
     current_entry=$(jq --arg token "$token" '.[$token] // empty' "$USAGE_LOGFILE")

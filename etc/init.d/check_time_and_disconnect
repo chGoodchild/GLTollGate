@@ -9,7 +9,7 @@ USE_PROCD=1
 start_service() {
     procd_open_instance
     procd_set_param command /www/cgi-bin/check_time_and_disconnect.sh
-    procd_set_param respawn  # This will respawn the script if it crashes
+    procd_set_param respawn 3600 5 0  # Try respawning every hour, with a maximum of 5 tries
     procd_close_instance
 }
 
