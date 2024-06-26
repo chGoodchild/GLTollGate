@@ -33,7 +33,7 @@ config nodogsplash
   #option gatewayport '2050'
 
 
-  option gatewayname 'OpenWrt Nodogsplash'
+  option gatewayname 'TollGate'
   option maxclients '250'
 
   # Enables debug output (0-3)
