@@ -26,21 +26,21 @@
 <br>
 <italic-black>Paste e-cash below and press Pay for internet access.</italic-black>
 <br><br>
-<form method="get" action="$authaction">
+<form method="get" action="$authaction" style="display: flex; align-items: center;">
   <input type="hidden" name="tok" value="$tok">
   <input type="hidden" name="redir" value="$redir">
-  <input type="text" name="username" placeholder="Paste e-cash here" required>
-  <br><br>
+  <input type="text" name="username" placeholder="Paste e-cash here" required style="flex: 1; margin-right: 10px;">
   <input type="submit" value="Pay">
-  <div style="display: inline-block; vertical-align: top; padding-left: 10px;">
-    <italic-black>Note: E-cash denomination must be a power of two.</italic-black><br>
-    <italic-black>LNURL-Withdraw is also accepted.</italic-black><br>
-    <italic-black>The price is 0.2 sat per second.</italic-black>
-  </div>
 </form>
+<div style="margin-top: 10px;">
+  <italic-black>Note: E-cash denomination must be a power of two.</italic-black><br>
+  <italic-black>LNURL-Withdraw is also accepted.</italic-black><br>
+  <italic-black>The price is 0.2 sat per second.</italic-black>
+</div>
 <hr>
 <copy-right>Copyright &copy; The Nodogsplash Contributors 2004-2019.<br>This software is released under the GNU GPL license.</copy-right>
 
 </div></div>
 </body>
 </html>
+
