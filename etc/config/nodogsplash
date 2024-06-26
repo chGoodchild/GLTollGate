@@ -37,7 +37,8 @@ config nodogsplash
   option maxclients '250'
 
   # Enables debug output (0-3)
-  option debuglevel '3'
+  option debuglevel '0'
+  # option debuglevel '3'
 
   # Client timeouts in minutes
   option preauthidletimeout '30'
