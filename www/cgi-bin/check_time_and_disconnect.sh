@@ -8,14 +8,15 @@ USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
 # Function to get the total data paid for each MAC address
 get_paid_data() {
-  jq -r '.[] | "\(.mac) \(.data_amount) \(.token // empty)"' "$LOGFILE" | awk '
+  jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token // empty)"' "$LOGFILE" | awk '
     {
       mac[$1] += $2
-      token[$1] = $3
+      sessiontime[$1] = $3
+      token[$1] = $4
     }
     END {
       for (m in mac) {
-        print m, mac[m], token[m]
+        print m, mac[m], sessiontime[m], token[m]
       }
     }'
 }
@@ -64,23 +65,24 @@ disconnect_clients_if_exceeded_time() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
 
   echo "$client_usage" | while read -r mac duration token; do
-    associated_token=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $3}')
+    associated_token=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $4}')
+    session_time=$(echo "$paid_data" | awk -v mac="$mac" '$1 == mac {print $3}')
+    echo "Checking MAC: $mac, Duration: $duration, Token: $token, Associated Token: $associated_token, Session Time: $session_time"
 
     if [ -z "$associated_token" ]; then
       continue
     fi
 
-    session_time=$(jq -r --arg token "$associated_token" '.[] | select(.token == $token) | .sessiontime' "$LOGFILE")
-
     if [ "$duration" -gt "$session_time" ]; then
+      echo "Disconnecting $mac: duration $duration exceeded session_time $session_time"
       ndsctl deauth "$mac"
-      echo "$mac: Disconnected after $duration seconds, Session time limit $session_time seconds"
     fi
   done
 }
 
 # Main
 paid_data=$(get_paid_data)
+echo "Paid Data: $paid_data"
 compare_and_update_usage_log
 disconnect_clients_if_exceeded_time
 
