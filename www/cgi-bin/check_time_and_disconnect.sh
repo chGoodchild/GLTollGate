@@ -65,18 +65,6 @@ read_usage_log() {
   usage_data=$(cat "$USAGE_LOGFILE")
 }
 
-# Update purchase log with token if missing
-update_purchase_log_with_token() {
-  client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.token)"')
-  echo "Updating Purchase Log with Tokens"  # Debugging line
-
-  echo "$client_usage" | while read -r mac token; do
-    jq --arg mac "$mac" --arg token "$token" '
-    map(if .mac == $mac and (.token | length) == 0 then .token = $token else . end)
-    ' "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
-  done
-}
-
 disconnect_clients_if_exceeded_time() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
   echo "Client Usage: $client_usage"  # Debugging line
@@ -98,7 +86,7 @@ disconnect_clients_if_exceeded_time() {
 }
 
 # Main
-update_purchase_log_with_token
+/www/cgi-bin/update_purchase_log_with_token.sh
 paid_data=$(get_paid_data)
 echo "Paid Data: $paid_data"
 compare_and_update_usage_log
