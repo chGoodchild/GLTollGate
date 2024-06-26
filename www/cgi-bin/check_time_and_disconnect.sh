@@ -9,9 +9,6 @@ LOGFILE="/var/log/nodogsplash_data_purchases.json"
 # Path to the nodogsplash data usage log
 USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
-# Maximum allowed connection duration in seconds
-TIME_LIMIT=3600  # 1 hour
-
 # Function to get the total data paid for each MAC address
 get_paid_data() {
   jq -r '.[] | "\(.mac) \(.data_amount) \(.token // empty)"' "$LOGFILE" | awk '

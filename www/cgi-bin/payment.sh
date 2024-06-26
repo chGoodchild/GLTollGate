@@ -21,6 +21,7 @@ fi
 
 # Pricing model
 MSAT_PER_KB=3
+SECONDS_PER_SAT=5
 
 # Function to check if the internet gateway is reachable
 check_internet_gateway() {
@@ -61,18 +62,20 @@ case "$METHOD" in
         echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
         DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+        SESSION_TIME=$((PAID_AMOUNT * SECONDS_PER_SAT))
         
         # Read existing JSON, append new entry, and write back
         if [ -f "$LOGFILE" ]; then
-          jq --arg timestamp "$TIMESTAMP" --arg mac "$MAC" --arg data_amount "$DATA_AMOUNT" \
-            '. += [{"timestamp": $timestamp, "mac": $mac, "data_amount": $data_amount}]' \
+          jq --arg timestamp "$TIMESTAMP" --arg mac "$MAC" --arg data_amount "$DATA_AMOUNT" --arg sessiontime "$SESSION_TIME" \
+            '. += [{"timestamp": $timestamp, "mac": $mac, "data_amount": $data_amount, "sessiontime": $sessiontime}]' \
             "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
         else
-          echo "[{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\"}]" > "$LOGFILE"
+          echo "[{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\", \"sessiontime\": \"$SESSION_TIME\"}]" > "$LOGFILE"
         fi
         
-        echo "Connection approved: LNURLW redeemed successfully" >> /tmp/arguments_log.md
-        echo 3600 0 0
+        echo "Connection approved: LNURLW redeemed successfully, sessiontime $SESSION_TIME" >> /tmp/arguments_log.md
+
+        echo $SESSION_TIME 0 0
         exit 0
       else
         echo "Connection rejected: LNURLW redemption failed" >> /tmp/arguments_log.md
@@ -99,18 +102,19 @@ case "$METHOD" in
         echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
         DATA_AMOUNT=$(awk "BEGIN {print $TOTAL_AMOUNT_MSAT / $MSAT_PER_KB}")
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+        SESSION_TIME=$((PAID_AMOUNT * SECONDS_PER_SAT))
         
         # Read existing JSON, append new entry, and write back
         if [ -f "$LOGFILE" ]; then
-          jq --arg timestamp "$TIMESTAMP" --arg mac "$MAC" --arg data_amount "$DATA_AMOUNT" \
-            '. += [{"timestamp": $timestamp, "mac": $mac, "data_amount": $data_amount}]' \
+          jq --arg timestamp "$TIMESTAMP" --arg mac "$MAC" --arg data_amount "$DATA_AMOUNT" --arg sessiontime "$SESSION_TIME" \
+            '. += [{"timestamp": $timestamp, "mac": $mac, "data_amount": $data_amount, "sessiontime": $sessiontime}]' \
             "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
         else
-          echo "[{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\"}]" > "$LOGFILE"
+          echo "[{\"timestamp\": \"$TIMESTAMP\", \"mac\": \"$MAC\", \"data_amount\": \"$DATA_AMOUNT\", \"sessiontime\": \"$SESSION_TIME\"}]" > "$LOGFILE"
         fi
         
-        echo "Connection approved: Token redeemed successfully" >> /tmp/arguments_log.md
-        echo 3600 0 0
+        echo "Connection approved: Token redeemed successfully, sessiontime $SESSION_TIME" >> /tmp/arguments_log.md
+        echo $SESSION_TIME 0 0
         exit 0
       else
         echo "Connection rejected: Token redemption failed" >> /tmp/arguments_log.md
