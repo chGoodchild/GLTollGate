@@ -8,22 +8,24 @@ USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
 
 # Function to get the total data paid for each MAC address
 get_paid_data() {
-  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime)"' "$LOGFILE")
+  data=$(jq -r '.[] | "\(.mac) \(.data_amount) \(.sessiontime) \(.token // empty)"' "$LOGFILE")
   echo "jq output: $data"  # Debugging line
   echo "$data" | awk '
   {
     mac[$1] += $2
     sessiontime[$1] = $3
+    token[$1] = $4
   }
   END {
     for (m in mac) {
-      print m, mac[m], sessiontime[m]
+      print m, mac[m], sessiontime[m], token[m]
     }
   }'
 }
 
 compare_and_update_usage_log() {
   client_usage=$(ndsctl json | jq -r '.clients | to_entries[] | "\(.value.mac) \(.value.duration) \(.value.token)"')
+  echo "Client Usage: $client_usage"  # Debugging line
 
   echo "$client_usage" | while read -r mac duration token; do
     current_duration=$(jq -r --arg mac "$mac" '.[] | select(.mac == $mac) | .duration // 0' "$USAGE_LOGFILE")
@@ -96,9 +98,9 @@ disconnect_clients_if_exceeded_time() {
 }
 
 # Main
+update_purchase_log_with_token
 paid_data=$(get_paid_data)
 echo "Paid Data: $paid_data"
 compare_and_update_usage_log
-update_purchase_log_with_token
 disconnect_clients_if_exceeded_time
 
