@@ -2,18 +2,10 @@
 
 Generate a key pair:
 ```
-GLTollGate/nostr$ ./seedphrase_generator.sh
-
-up to date, audited 46 packages in 4s
-
-2 packages are looking for funding
-  run `npm fund` for details
-
-found 0 vulnerabilities
-Your BIP39 mnemonic is: predict urban defy angry abstract slogan exist april such final model safe
-Your Nostr secret key (private key) is:  nsec3b5930ebd09ae5739f2c8bff1fe176955906ea2e413649c77762d4635678b4c8
-Your Nostr public key is:  npub024048fc5653e919d4ea924becb393cacff1c04b7450293175a8044f7fcd942b4b
-
+GLTollGate/nostr$ ./seedphrase_generator.sh 
+Your BIP39 mnemonic is: awesome idea nephew extend few since despair pony matter grocery scorpion relief
+Your Nostr secret key (private key) is:  nsec1fejgdxt3dujrkk8pv52mzf4apanh0yyxt3zpt3yl5l3f3ywpu5yqeknu63
+Your Nostr public key is:  npub1qv2cvh3mamem05kdv2hfz2ur3jqjmcqw9kkr8qc2yn77uzrset95cq45t53
 
 ```
 

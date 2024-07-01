@@ -2,6 +2,7 @@ const bip39 = require('bip39');
 const bip32 = require('bip32');
 const { ECPairFactory } = require('ecpair');
 const ecc = require('tiny-secp256k1');
+const { bech32 } = require('@scure/base');
 const bitcoin = require('bitcoinjs-lib');
 
 // Use ECPairFactory to create an ECPair instance
@@ -18,12 +19,20 @@ const seed = bip39.mnemonicToSeedSync(mnemonic);
 const root = bip32.fromSeed(seed);
 
 // Get the private key in hexadecimal format
-const privateKey = "nsec" + root.privateKey.toString('hex');
+const privateKey = root.privateKey.toString('hex');
+
+// Bech32 encode the private key
+const words = bech32.toWords(Buffer.from(privateKey, 'hex'));
+const bech32PrivateKey = bech32.encode('nsec', words);
 
 // Get the public key using the ECPair
 const keyPair = ECPair.fromPrivateKey(root.privateKey);
-const publicKey = "npub" + keyPair.publicKey.toString('hex');
+const publicKey = keyPair.publicKey.toString('hex');
 
-console.log("Your Nostr secret key (private key) is: ", privateKey);
-console.log("Your Nostr public key is: ", publicKey);
+// Bech32 encode the public key
+const pubWords = bech32.toWords(Buffer.from(publicKey, 'hex'));
+const bech32PublicKey = bech32.encode('npub', pubWords);
+
+console.log("Your Nostr secret key (private key) is: ", bech32PrivateKey);
+console.log("Your Nostr public key is: ", bech32PublicKey);
 
