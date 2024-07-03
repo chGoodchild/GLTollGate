@@ -19,6 +19,8 @@ RELAYS=(
     "wss://relay.nostr.band"
 )
 
+echo "JSON being sent: $EVENT_JSON"
+
 # Publish Event to Relays
 for RELAY in "${RELAYS[@]}"; do
     echo "Publishing to $RELAY"
