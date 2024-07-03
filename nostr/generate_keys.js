@@ -2,8 +2,7 @@ const bip39 = require('bip39');
 const bip32 = require('bip32');
 const { ECPairFactory } = require('ecpair');
 const ecc = require('tiny-secp256k1');
-const { bech32 } = require('@scure/base');
-const bitcoin = require('bitcoinjs-lib');
+const { bech32 } = require('bech32'); // Use 'bech32' directly for Nostr
 
 // Use ECPairFactory to create an ECPair instance
 const ECPair = ECPairFactory(ecc);
