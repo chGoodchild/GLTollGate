@@ -1,10 +1,27 @@
-#!/bin/sh
+#!/bin/bash
+
+# Path to the JSON file with keys
+JSON_FILE="nostr_keys.json"
+
+# Extract public and private keys using jq
+PUBLIC_KEY=$(jq -r '.npub' $JSON_FILE)
+PRIVATE_KEY=$(jq -r '.nsec' $JSON_FILE)
 
 # Configuration
-PRIVATE_KEY="your_private_key_here"  # Replace with your actual private key
-PUBLIC_KEY="your_public_key_here"    # Replace with your actual public key
-RELAYS="wss://relay1.example.com wss://relay2.example.com"  # List of relays
-CONTENT="Hello, Nostr!"              # Content of the note
+RELAYS=(
+    "wss://nos.lol"
+    "wss://nostr.mom"
+    "wss://nostr.oxtr.dev"
+    "wss://relay.damus.io"
+    "wss://relay.nostr.bg"
+    "wss://nostr.bitcoiner.social"
+    "wss://nostr.fmt.wiz.biz"
+    "wss://nostr.wine"
+    "wss://relay.noswhere.com"
+    "wss://relay.nostr.band"
+)
+
+CONTENT="Hello, Nostr!"                                      # Content of the note
 
 # Create Event
 CREATED_AT=$(date +%s)
@@ -17,14 +34,18 @@ SERIALIZED_EVENT=$(printf '[0,"%s",%s,1,[],"%s"]' "$PUBLIC_KEY" "$CREATED_AT" "$
 EVENT_ID=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 | awk '{print $2}')
 
 # Sign Event
-SIGNATURE=$(echo -n $EVENT_ID | openssl dgst -sha256 -sign <(echo -n $PRIVATE_KEY) | openssl dgst -sha256 | awk '{print $2}')
+# Correct the signing process using openssl
+SIGNATURE=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 -sign <(echo -n $PRIVATE_KEY | xxd -r -p) | xxd -p -c 256)
 
 # Update Event with ID and Signature
-EVENT=$(echo $EVENT | sed "s/\"id\":\"\"/\"id\":\"$EVENT_ID\"/" | sed "s/\"sig\":\"\"/\"sig\":\"$SIGNATURE\"/")
+EVENT=$(echo $EVENT | jq --arg id "$EVENT_ID" --arg sig "$SIGNATURE" '.id = $id | .sig = $sig')
+
+# Convert the updated event JSON to a single line format suitable for websocket transmission
+EVENT_JSON=$(echo $EVENT | jq -c .)
 
 # Publish Event to Relays
-for RELAY in $RELAYS; do
+for RELAY in "${RELAYS[@]}"; do
     echo "Publishing to $RELAY"
-    echo '[ "EVENT", '"$EVENT"' ]' | websocat "$RELAY"
+    echo $EVENT_JSON | /usr/local/bin/websocat "$RELAY" --text
 done
 
