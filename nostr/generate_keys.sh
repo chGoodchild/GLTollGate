@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Define the URL of the Python script
-URL="https://github.com/chGoodchild/nostrKeys/releases/download/v0.0.1/generate_npub.py"
+URL="https://github.com/chGoodchild/nostrKeys/releases/download/v0.0.2/generate_npub.py"
 SCRIPT="generate_npub.py"
 OUTPUT_FILE="nostr_keys.json"
 
 # Check if the Python script is already present and matches the expected SHA-256 hash
-EXPECTED_HASH="809abf19807a4ebf0bdb7cf8a11649c1217c4e798a35c061030d9a0f197653c6"
+EXPECTED_HASH="24cfabf6b012c2ea2efd3635e61c34a052001abe4dc5532aa5a809e01a4df1ba"
 CURRENT_HASH=$(sha256sum $SCRIPT | awk '{ print $1 }')
 
 if [ ! -f "$SCRIPT" ] || [ "$EXPECTED_HASH" != "$CURRENT_HASH" ]; then

@@ -4,10 +4,10 @@ from mnemonic import Mnemonic
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
-def generate_pem_file(hex):
+def generate_pem_file(nsec, hex):
     # Assuming `private_key_bytes` is your decoded hex key (32 bytes for P-256)
     private_key_bytes = bytes.fromhex(hex)
     private_key = ec.derive_private_key(int.from_bytes(private_key_bytes, 'big'), ec.SECP256R1())
@@ -20,7 +20,7 @@ def generate_pem_file(hex):
     )
 
     # Write the PEM to a file
-    with open('test_key.pem', 'wb') as pem_file:
+    with open(nsec + '.pem', 'wb') as pem_file:
         pem_file.write(pem)
 
 def generate_private_key():
@@ -89,7 +89,7 @@ def populate_json(pk, original_entropy):
             "bip39_nsec": mnemonic
         }
 
-    generate_pem_file(nsec_hex)
+    generate_pem_file(nsec, nsec_hex)
     return output
     
 def generate_keypair_and_mnemonic():
