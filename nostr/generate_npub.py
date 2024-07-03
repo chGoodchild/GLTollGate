@@ -1,9 +1,27 @@
 import json, sys
 from nostr.key import PrivateKey
 from mnemonic import Mnemonic
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
 
 __version__ = '0.0.1'
 
+
+def generate_pem_file(hex):
+    # Assuming `private_key_bytes` is your decoded hex key (32 bytes for P-256)
+    private_key_bytes = bytes.fromhex(hex)
+    private_key = ec.derive_private_key(int.from_bytes(private_key_bytes, 'big'), ec.SECP256R1())
+
+    # Serialize the private key to PEM format
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    # Write the PEM to a file
+    with open('test_key.pem', 'wb') as pem_file:
+        pem_file.write(pem)
 
 def generate_private_key():
     # Generate a new private key
@@ -48,8 +66,11 @@ def populate_json(pk, original_entropy):
     derived_entropy = entropy_from_mnemonic(mnemonic)
     assert original_entropy == derived_entropy, "Entropy mismatch!"
 
-    derrived_nsec = nsec_from_entropy(derived_entropy)[0]
-    assert nsec == derrived_nsec, "nsec mismatch!"
+    derived_nsec = nsec_from_entropy(derived_entropy)[0]
+    assert nsec == derived_nsec, "nsec mismatch!"
+
+    # Convert the private key entropy to hex
+    nsec_hex = original_entropy.hex()
 
     # Create the output dictionary
     if False:
@@ -58,14 +79,17 @@ def populate_json(pk, original_entropy):
             "nsec": nsec,
             "entropy": original_entropy.hex(),
             "bip39_nsec": mnemonic,
-            "nsec_from_mnemonic": derrived_nsec
+            "nsec_from_mnemonic": derrived_nsec,
+            "nsec_hex": nsec_hex
         }
     else:
         output = {
             "npub": npub,
             "nsec": nsec,
-            "bip39_nsec": mnemonic,
+            "bip39_nsec": mnemonic
         }
+
+    generate_pem_file(nsec_hex)
     return output
     
 def generate_keypair_and_mnemonic():
