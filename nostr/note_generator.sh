@@ -5,9 +5,8 @@ JSON_FILE="nostr_keys.json"
 
 # Extract keys and identifiers
 PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$JSON_FILE")
-PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$JSON_FILE")
-PRIVATE_KEY_ID=$(jq -r '.nsec' "$JSON_FILE") # Assuming 'nsec' contains the identifier
-PEM_FILE="${PRIVATE_KEY_ID}.pem" # Constructs the PEM file name dynamically
+PRIVATE_KEY_ID=$(jq -r '.nsec' "$JSON_FILE")
+PEM_FILE="${PRIVATE_KEY_ID}.pem"
 
 # Event data
 CONTENT="Hello, Nostr!"
@@ -24,7 +23,7 @@ if [ ! -f "$PEM_FILE" ]; then
 fi
 
 # Sign event using the PEM file
-SIGNATURE=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 -sign "$PEM_FILE" | xxd -p -c 256)
+SIGNATURE=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 -sign "$PEM_FILE" | openssl base64 | tr -d '\n')
 
 # Update event with signature
 EVENT_ID=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 | awk '{print $2}')
