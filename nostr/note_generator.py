@@ -1,66 +1,40 @@
 import json
-import hashlib
-from ecdsa import SigningKey, SECP256k1
 from datetime import datetime
+from nostr.key import PrivateKey
+from nostr.event import Event
 
 # Load the keys from the JSON file
 json_file = "nostr_keys.json"
 with open(json_file, 'r') as f:
     keys = json.load(f)
 
+# Ensure the private key is correctly loaded as bech32 format
+private_key_nsec = keys['nsec']  # Assuming this is the bech32 format key
 public_key_hex = keys['npub_hex']
-private_key_hex = keys['nsec_hex']
-private_key_id = keys['nsec']
-pem_file = f"{private_key_id}.pem"
 
-# Ensure the PEM file exists
-try:
-    with open(pem_file, 'r') as f:
-        pem_data = f.read()
-except FileNotFoundError:
-    print(f"PEM file {pem_file} does not exist.")
-    exit(1)
-
-# Load the private key from the PEM file
-private_key = SigningKey.from_pem(pem_data)
+# Create a PrivateKey object from the bech32 encoded key
+private_key = PrivateKey.from_nsec(private_key_nsec)
 
 # Event data
 content = "Hello, Nostr!"
 created_at = int(datetime.now().timestamp())
 
-# Create the event JSON without id and sig
-event = {
-    "id": "",
-    "pubkey": public_key_hex,
-    "created_at": created_at,
-    "kind": 1,
-    "tags": [],
-    "content": content,
-    "sig": ""
-}
+# Create the event
+event = Event(
+    public_key=private_key.public_key.hex(),
+    content=content,
+    created_at=created_at,
+    kind=1,
+    tags=[]
+)
 
-# Serialize the event data
-serialized_event = json.dumps([0, public_key_hex, created_at, 1, [], content], separators=(',', ':'))
-
-# Hash the serialized event
-event_hash = hashlib.sha256(serialized_event.encode()).digest()
-
-# Compute the event ID (hash of the serialized event)
-event_id = hashlib.sha256(serialized_event.encode()).hexdigest()
-
-# Sign the hashed event
-signature = private_key.sign(event_hash)
-signature_hex = signature.hex()
-
-# Update the event with the ID and signature
-event["id"] = event_id
-event["sig"] = signature_hex
+# Sign the event
+private_key.sign_event(event)
 
 # Print the final event
-final_event = json.dumps(["EVENT", event], indent=2)
+final_event = event.to_message()
 print(final_event)
 
 # Save to send.json
 with open('send.json', 'w') as f:
     f.write(final_event)
-
