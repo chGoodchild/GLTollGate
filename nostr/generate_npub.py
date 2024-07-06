@@ -6,16 +6,15 @@ from cryptography.hazmat.primitives import serialization
 
 __version__ = '0.0.2'
 
-
 def generate_pem_file(nsec, hex):
-    # Assuming `private_key_bytes` is your decoded hex key (32 bytes for P-256)
+    # Assuming `private_key_bytes` is your decoded hex key (32 bytes for SECP256K1)
     private_key_bytes = bytes.fromhex(hex)
-    private_key = ec.derive_private_key(int.from_bytes(private_key_bytes, 'big'), ec.SECP256R1())
+    private_key = ec.derive_private_key(int.from_bytes(private_key_bytes, 'big'), ec.SECP256K1())
 
     # Serialize the private key to PEM format
     pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption()
     )
 
@@ -51,7 +50,6 @@ def nsec_from_entropy(entropy):
     pk = PrivateKey(entropy)
     return pk.bech32(), pk
 
-
 def populate_json(pk, original_entropy):
     # Get the public key in bech32 format
     npub = pk.public_key.bech32()
@@ -71,6 +69,7 @@ def populate_json(pk, original_entropy):
 
     # Convert the private key entropy to hex
     nsec_hex = original_entropy.hex()
+    npub_hex = pk.public_key.raw_bytes.hex()
 
     # Create the output dictionary
     if False:
@@ -80,23 +79,25 @@ def populate_json(pk, original_entropy):
             "entropy": original_entropy.hex(),
             "bip39_nsec": mnemonic,
             "nsec_from_mnemonic": derrived_nsec,
-            "nsec_hex": nsec_hex
+            "nsec_hex": nsec_hex,
+            "npub_hex": npub_hex
         }
     else:
         output = {
             "npub": npub,
             "nsec": nsec,
+            "nsec_hex": nsec_hex,
+            "npub_hex": npub_hex,
             "bip39_nsec": mnemonic
         }
 
     generate_pem_file(nsec, nsec_hex)
     return output
-    
+
 def generate_keypair_and_mnemonic():
     # Generate a new private key and entropy
     pk, original_entropy = generate_private_key()
     return populate_json(pk, original_entropy)
-
 
 def get_keypair_from_mnemonic(mnemonic):
     # Assume input is a seed phrase (mnemonic)
@@ -105,7 +106,6 @@ def get_keypair_from_mnemonic(mnemonic):
     # Get the private key and public key
     pk = nsec_from_entropy(original_entropy)[1]
     return populate_json(pk, original_entropy)
-
 
 if __name__ == "__main__":
     # Check if a mnemonic was provided as an argument
@@ -117,3 +117,4 @@ if __name__ == "__main__":
 
     # Print the output as JSON
     print(json.dumps(keypair_and_mnemonic, indent=4))
+

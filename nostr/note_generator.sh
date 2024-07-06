@@ -5,6 +5,7 @@ JSON_FILE="nostr_keys.json"
 
 # Extract keys and identifiers
 PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$JSON_FILE")
+PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$JSON_FILE")
 PRIVATE_KEY_ID=$(jq -r '.nsec' "$JSON_FILE")
 PEM_FILE="${PRIVATE_KEY_ID}.pem"
 
@@ -12,9 +13,19 @@ PEM_FILE="${PRIVATE_KEY_ID}.pem"
 CONTENT="Hello, Nostr!"
 CREATED_AT=$(date +%s)
 
-# Create Event
-EVENT=$(printf '{"id":"","pubkey":"%s","created_at":%s,"kind":1,"tags":[],"content":"%s","sig":""}' "$PUBLIC_KEY_HEX" "$CREATED_AT" "$CONTENT")
-SERIALIZED_EVENT=$(printf '[0,"%s",%s,1,[],"%s"]' "$PUBLIC_KEY_HEX" "$CREATED_AT" "$CONTENT")
+# Create the event JSON without id and sig
+EVENT=$(jq -n --arg pubkey "$PUBLIC_KEY_HEX" --argjson created_at "$CREATED_AT" --arg content "$CONTENT" '{
+    "id": "",
+    "pubkey": $pubkey,
+    "created_at": $created_at,
+    "kind": 1,
+    "tags": [],
+    "content": $content,
+    "sig": ""
+}')
+
+# Serialize the event data
+SERIALIZED_EVENT="[0,\"$PUBLIC_KEY_HEX\",$CREATED_AT,1,[],\"$CONTENT\"]"
 
 # Ensure the PEM file exists
 if [ ! -f "$PEM_FILE" ]; then
@@ -22,18 +33,30 @@ if [ ! -f "$PEM_FILE" ]; then
     exit 1
 fi
 
-# Sign event using the PEM file
-SIGNATURE=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 -sign "$PEM_FILE" | openssl base64 | tr -d '\n')
+# Ensure private key hex is in the correct format
+PRIVATE_KEY_HEX_CLEAN=$(echo -n $PRIVATE_KEY_HEX | xxd -r -p | base64 | tr -d '\n')
 
-# Update event with signature
-EVENT_ID=$(echo -n $SERIALIZED_EVENT | openssl dgst -sha256 | awk '{print $2}')
-EVENT=$(echo $EVENT | jq --arg id "$EVENT_ID" --arg sig "$SIGNATURE" '.id = $id | .sig = $sig')
+# Create a PEM file from the private key hex
+echo "-----BEGIN EC PRIVATE KEY-----
+MHQCAQEEIF${PRIVATE_KEY_HEX_CLEAN}AgEBME8w
+-----END EC PRIVATE KEY-----" > temp.pem
 
-# Convert event to JSON
-EVENT_JSON=$(jq -n --arg id "$EVENT_ID" --arg pubkey "$PUBLIC_KEY_HEX" --argjson created_at $CREATED_AT --argjson kind 1 --arg content "$CONTENT" --arg sig "$SIGNATURE" '{id: $id, pubkey: $pubkey, created_at: $created_at, kind: $kind, tags: [], content: $content, sig: $sig}')
+# Sign the serialized event using the PEM file
+SIGNATURE=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -sign temp.pem | openssl base64 | tr -d '\n')
+# SIGNATURE=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -sign "$PEM_FILE" | openssl base64 | tr -d '\n')
 
-# Save to send.json
-echo '["EVENT",' "$EVENT_JSON" ']' > send.json
+
+# Compute the event ID (hash of the serialized event)
+EVENT_ID=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 | awk '{print $2}')
+
+# Clean up the temporary PEM file
+#rm temp.pem
+
+# Update the event with the ID and signature
+EVENT=$(echo "$EVENT" | jq --arg id "$EVENT_ID" --arg sig "$SIGNATURE" '.id = $id | .sig = $sig')
+
+# Convert event to JSON and save to send.json
+echo '["EVENT",' "$EVENT" ']' > send.json
 
 # Output the event JSON
 cat send.json
