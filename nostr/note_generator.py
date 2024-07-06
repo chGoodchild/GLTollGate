@@ -32,10 +32,10 @@ created_at = int(datetime.now().timestamp())
 event = {
     "id": "",
     "pubkey": public_key_hex,
-    "created_at": 1720275679,
+    "created_at": created_at,
     "kind": 1,
     "tags": [],
-    "content": "Hello, Nostr!",
+    "content": content,
     "sig": ""
 }
 
@@ -45,12 +45,12 @@ serialized_event = json.dumps([0, public_key_hex, created_at, 1, [], content], s
 # Hash the serialized event
 event_hash = hashlib.sha256(serialized_event.encode()).digest()
 
+# Compute the event ID (hash of the serialized event)
+event_id = hashlib.sha256(serialized_event.encode()).hexdigest()
+
 # Sign the hashed event
 signature = private_key.sign(event_hash)
 signature_hex = signature.hex()
-
-# Compute the event ID
-event_id = hashlib.sha256(json.dumps(event, separators=(',', ':')).encode()).hexdigest()
 
 # Update the event with the ID and signature
 event["id"] = event_id
