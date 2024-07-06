@@ -7,6 +7,8 @@ name = "pypi"
 websockets = "*"
 nostr = "*"
 nostr-sdk = "*"
+pyopenssl = "*"
+ecdsa = "*"
 
 [dev-packages]
 

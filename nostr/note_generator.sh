@@ -34,7 +34,7 @@ if [ ! -f "$PEM_FILE" ]; then
 fi
 
 # Sign the serialized event using the PEM file
-SIGNATURE=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -sign "$PEM_FILE" | openssl dgst -sha256 -binary | openssl base64 | tr -d '\n')
+SIGNATURE=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -sign "$PEM_FILE" | openssl base64 | tr -d '\n')
 
 # Compute the event ID (hash of the serialized event)
 EVENT_ID=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 | awk '{print $2}')
