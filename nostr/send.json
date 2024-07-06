@@ -1,1 +1,12 @@
-["EVENT", {"id": "487d5d6af77775ba7aee95d16f5eb93dba4904841bfb5badcb7d346df553d7f0", "pubkey": "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1", "created_at": 1720298362, "kind": 1, "tags": [], "content": "Hello, Nostr!", "sig": "db6e1ba2b29865ea93a6194c8226efbd6aa06b3b18597b09cc0eb4a0021f0fed546f92e615464461f4391303b127f6a8cde4ad568e95bb227c27fd67b36ad115"}]
+[
+  "EVENT",
+  {
+    "pubkey": "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1",
+    "created_at": 1720299618,
+    "kind": 1,
+    "tags": [],
+    "content": "Hello, Nostr!",
+    "id": "d570fb16d0c9b1ae5af6668b7731f1163536e0a2f93e1b3a2db65d5313cdfae8",
+    "sig": "68d37e07ace3ad814bf09cb134c7e170f93624bf4f6ffe37acb8101d05182c42e759eb498bb85142e69331591bb336cc32905b3206e82468dc2b59efa443f0af"
+  }
+]
