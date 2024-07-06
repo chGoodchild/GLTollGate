@@ -1,5 +1,7 @@
 {
     "npub": "npub1yjeh7hkqsg4sznrwhdp9vsdvsdff63auu3xhqfet822ulylkfnqsgcpy8t",
     "nsec": "nsec1ez8tf53fvfwrj605l8z6l8aqjjngxkyzfrxwtce30wp8gwwtnsdqc42r4v",
+    "nsec_hex": "c88eb4d229625c3969f4f9c5af9fa094a683588248cce5e3317b827439cb9c1a",
+    "npub_hex": "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1",
     "bip39_nsec": "silk interest cruel fan chair bronze pond palace shield language trial citizen habit proof ankle book tourist book galaxy agent drum total idea frog"
 }

@@ -37,3 +37,11 @@ Your Npub (public key) is: npub024048fc5653e919d4ea924becb393cacff1c04b745029317
 
 ```
 
+
+
+https://pypi.org/project/nostr-sdk/
+
+https://github.com/nostr-dev-kit/ndk/tree/master/ndk/src/relay
+
+https://pypi.org/project/nostr/
+

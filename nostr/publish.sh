@@ -1,22 +1,17 @@
 #!/bin/bash
 
-# Get the event JSON from the first argument
-EVENT_JSON=$1
+# Read the event JSON from the send.json file
+EVENT_JSON=$(cat send.json)
 
-# All remaining arguments are relays
-shift
+# Ensure the event JSON is valid
+if [ -z "$EVENT_JSON" ]; then
+    echo "No event JSON provided"
+    exit 1
+fi
+
 # Configuration
 RELAYS=(
-    "wss://nos.lol"
-    "wss://nostr.mom"
-    "wss://nostr.oxtr.dev"
-    "wss://relay.damus.io"
-    "wss://relay.nostr.bg"
-    "wss://nostr.bitcoiner.social"
-    "wss://nostr.fmt.wiz.biz"
-    "wss://nostr.wine"
-    "wss://relay.noswhere.com"
-    "wss://relay.nostr.band"
+    "wss://orangesync.tech"
 )
 
 echo "JSON being sent: $EVENT_JSON"
