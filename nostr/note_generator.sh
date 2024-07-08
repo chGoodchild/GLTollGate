@@ -22,8 +22,12 @@ fi
 # Create the serialized event data
 SERIALIZED_EVENT="[0,\"$PUBLIC_KEY_HEX\",$CREATED_AT,1,[],\"$CONTENT\"]"
 
-# Sign the serialized event using the PEM file
-SIGNATURE=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -sign "$PEM_FILE" | xxd -p -c 64 | tr -d '\n')
+# Convert the serialized event to a hash
+EVENT_HASH=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -binary | xxd -p -c 64)
+
+# Use secp256k1 to sign the hash
+SIGNATURE=$(echo -n "$EVENT_HASH" | LD_LIBRARY_PATH=/usr/local/lib secp256k1 sign --key "$PRIVATE_KEY_HEX" --hash sha256 | xxd -p -c 64)
+# SIGNATURE=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -sign "$PEM_FILE" | xxd -p -c 64 | tr -d '\n')
 
 # Compute the event ID (hash of the serialized event)
 EVENT_ID=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 | awk '{print $2}')

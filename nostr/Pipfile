@@ -9,6 +9,7 @@ nostr = "*"
 nostr-sdk = "*"
 pyopenssl = "*"
 ecdsa = "*"
+secp256k1 = "*"
 
 [dev-packages]
 
