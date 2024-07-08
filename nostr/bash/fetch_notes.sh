@@ -25,7 +25,7 @@ parse_and_print_notes() {
     while IFS= read -r message; do
         echo "Received message: $message"
         if echo "$message" | jq -e '.[0] == "EVENT"' > /dev/null; then
-            event=$(echo "$message" | jq -c '.[1]')
+            event=$(echo "$message" | jq -c '.[2]')
             content=$(echo "$event" | jq -r '.content')
             echo "Note Content: $content"
         fi

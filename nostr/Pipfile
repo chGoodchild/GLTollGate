@@ -12,6 +12,7 @@ ecdsa = "*"
 secp256k1 = "*"
 pynostr = "*"
 nest-asyncio = "*"
+mnemonic = "*"
 
 [dev-packages]
 
