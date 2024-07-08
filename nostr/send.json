@@ -1,9 +1,9 @@
 ["EVENT", {
-  "id": "31116123662a5100faa2eba775cb48dd14580bfeb2dca11849ba184ea8baf11f",
+  "id": "c7609159e8f0f2764d3403d224b03e9eca38b85d91eb907eed5c0939afccc480",
   "pubkey": "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1",
-  "created_at": 1720433053,
+  "created_at": 1720434480,
   "kind": 1,
   "tags": [],
   "content": "Hello, Nostr!",
-  "sig": ""
+  "sig": "a562e4a032ffc92eb1ee344f5f75cc8d24d4429acf81c2eb571e7657d8065070af418642d5670e139b634adae139a3e8f25a6f27d3f89231cdebe0a46a8a2dcc"
 } ]
