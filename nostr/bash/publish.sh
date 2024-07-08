@@ -10,9 +10,7 @@ if [ -z "$EVENT_JSON" ]; then
 fi
 
 # Configuration
-RELAYS=(
-    "wss://orangesync.tech"
-)
+IFS=',' read -r -a RELAYS <<< "$1"
 
 echo "JSON being sent: $EVENT_JSON"
 

@@ -33,7 +33,7 @@ PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$JSON_FILE")
 PRIVATE_KEY_ID=$(jq -r '.nsec' "$JSON_FILE")
 
 # Event data
-CONTENT="Hello, Nostr!"
+CONTENT=${1:-"Hello, Nostr!"}  # Use the first argument as content, or default to "Hello, Nostr!"
 CREATED_AT=$(date +%s)
 
 # Create the serialized event data
