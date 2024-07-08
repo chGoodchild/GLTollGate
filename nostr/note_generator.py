@@ -1,8 +1,7 @@
 import json
 import hashlib
-from datetime import datetime
-from ecdsa import SigningKey, SECP256k1
-from ecdsa.util import sigencode_string
+import secp256k1
+import time
 
 # Function to serialize the event
 def serialize_event(public_key, created_at, kind, tags, content):
@@ -27,11 +26,12 @@ public_key_hex = keys['npub_hex']
 private_key_bytes = bytes.fromhex(private_key_hex)
 
 # Create the private key object
-private_key = SigningKey.from_string(private_key_bytes, curve=SECP256k1)
+private_key = secp256k1.PrivateKey(private_key_bytes)
+public_key = private_key.pubkey.serialize(compressed=True)[1:].hex()
 
 # Event data
 content = "Hello, Nostr!"
-created_at = int(datetime.now().timestamp())
+created_at = int(time.time())
 
 # Create the event data (excluding 'id' and 'sig')
 event = {
@@ -53,7 +53,7 @@ serialized_event = serialize_event(public_key_hex, created_at, 1, [], content)
 event_hash = hashlib.sha256(serialized_event).digest()
 
 # Sign the serialized event data
-signature = private_key.sign_deterministic(event_hash, hashfunc=hashlib.sha256, sigencode=sigencode_string)
+signature = private_key.schnorr_sign(event_hash, None, raw=True)
 
 # Convert the signature to hex format
 event['sig'] = signature.hex()

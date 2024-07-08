@@ -2,11 +2,11 @@
   "EVENT",
   {
     "pubkey": "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1",
-    "created_at": 1720299618,
+    "created_at": 1720431465,
     "kind": 1,
     "tags": [],
     "content": "Hello, Nostr!",
-    "id": "d570fb16d0c9b1ae5af6668b7731f1163536e0a2f93e1b3a2db65d5313cdfae8",
-    "sig": "68d37e07ace3ad814bf09cb134c7e170f93624bf4f6ffe37acb8101d05182c42e759eb498bb85142e69331591bb336cc32905b3206e82468dc2b59efa443f0af"
+    "id": "66404b045b17c1ab0634938a9173ec4e9f562cdb0ee43be63b93024a0b4b1ec9",
+    "sig": "a36c0789cea3911e93c651a1c0975b1372636f2b8102384b024ca461f9016abd10609eef48e36661cd4ac0e1e6ee0b635ce668fb3da23b12a6439d66ee29c83d"
   }
 ]
