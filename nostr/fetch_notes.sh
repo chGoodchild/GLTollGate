@@ -4,8 +4,8 @@
 RELAYS=(
     "wss://orangesync.tech"
 )
-PUBLIC_KEY="npub1yjeh7hkqsg4sznrwhdp9vsdvsdff63auu3xhqfet822ulylkfnqsgcpy8t"
-# PUBLIC_KEY="24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1"
+# PUBLIC_KEY="npub1yjeh7hkqsg4sznrwhdp9vsdvsdff63auu3xhqfet822ulylkfnqsgcpy8t"
+PUBLIC_KEY="24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1"
 
 # Define the subscription ID and the timestamp to fetch events from
 SUBSCRIPTION_ID="sub1"

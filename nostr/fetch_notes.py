@@ -41,7 +41,7 @@ async def main():
     relays = [
         "wss://orangesync.tech"
     ]
-    public_key = "npub1yjeh7hkqsg4sznrwhdp9vsdvsdff63auu3xhqfet822ulylkfnqsgcpy8t"
+    public_key = "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1"
     subscription_id = uuid.uuid1().hex
 
     current_timestamp = int(time.time())
