@@ -3,23 +3,7 @@
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"
 
-# Check and install Websocat if necessary
-WEBSOCAT_BIN="/usr/local/bin/websocat"
-EXPECTED_VERSION="1.13.0"  # Updated to match version without 'v'
-
-if [ -x "$WEBSOCAT_BIN" ]; then
-    INSTALLED_VERSION=$($WEBSOCAT_BIN --version | awk '{print $2}')
-    echo "Installed Websocat version: $INSTALLED_VERSION"
-    if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
-        echo "Websocat version mismatch. Installing correct version..."
-        ./install/install_websocat.sh
-    else
-        echo "Correct version of Websocat is already installed."
-    fi
-else
-    echo "Websocat is not installed. Installing..."
-    ./install/install_websocat.sh
-fi
+./install/install_websocat.sh
 
 # Read the event JSON from the send.json file
 if [ ! -f "$JSON_FILE" ]; then

@@ -4,7 +4,21 @@
 WEBSOCAT_URL="https://github.com/vi/websocat/releases/download/v1.13.0/websocat.x86_64-unknown-linux-musl"
 WEBSOCAT_BIN="websocat"
 WEBSOCAT_INSTALL_DIR="/usr/local/bin/"
-EXPECTED_WEBSOCAT_VERSION="v1.13.0"
+EXPECTED_WEBSOCAT_VERSION="1.13.0"
+
+# Check if Websocat is installed and if the version matches
+if [ -x "$WEBSOCAT_INSTALL_DIR$WEBSOCAT_BIN" ]; then
+    INSTALLED_VERSION=$($WEBSOCAT_INSTALL_DIR$WEBSOCAT_BIN --version | awk '{print $2}')
+    if [[ "$INSTALLED_VERSION" == "$EXPECTED_WEBSOCAT_VERSION" ]]; then
+        # echo "Correct version of Websocat is already installed."
+        exit 0
+    else
+        echo "Installed Websocat version: $INSTALLED_VERSION"
+        echo "Websocat version mismatch. Installing correct version..."
+    fi
+else
+    echo "Websocat is not installed. Installing..."
+fi
 
 # Function to check if a command exists
 function command_exists() {
@@ -25,18 +39,6 @@ function update_package_lists_if_needed() {
 
 # Function to install Websocat
 function install_websocat() {
-    if [ -x "$WEBSOCAT_INSTALL_DIR$WEBSOCAT_BIN" ]; then
-        INSTALLED_VERSION=$($WEBSOCAT_INSTALL_DIR$WEBSOCAT_BIN --version 2>&1)
-        if [[ "$INSTALLED_VERSION" == *"$EXPECTED_WEBSOCAT_VERSION"* ]]; then
-            echo "Websocat $EXPECTED_WEBSOCAT_VERSION is already installed."
-            return
-        else
-            echo "Updating Websocat to $EXPECTED_WEBSOCAT_VERSION."
-        fi
-    else
-        echo "Installing Websocat $EXPECTED_WEBSOCAT_VERSION."
-    fi
-
     # Download the websocat binary
     wget -q $WEBSOCAT_URL -O $WEBSOCAT_BIN
 
