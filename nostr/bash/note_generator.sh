@@ -7,12 +7,9 @@ SIGN_EVENT_BIN="sign_event"
 EXPECTED_HASH="fecd306c2a478e774f21b64f61c643f786679233f9f75119a1e7f758a8f581df"
 
 # Function to compile sign_event.c
-compile_sign_event() {
-    gcc "$SIGN_EVENT_C" -o "$SIGN_EVENT_BIN" -lsecp256k1 -lssl -lcrypto
-    if [ $? -ne 0 ]; then
-        echo "Failed to compile $SIGN_EVENT_C"
-        exit 1
-    fi
+download_sign_event() {
+    echo "Not implemented yet"
+    exit 1
 }
 
 # Check if sign_event.c is already compiled and has the correct checksum
@@ -20,11 +17,11 @@ if [ -f "$SIGN_EVENT_BIN" ]; then
     CURRENT_HASH=$(sha256sum "$SIGN_EVENT_C" | awk '{ print $1 }')
     if [ "$EXPECTED_HASH" != "$CURRENT_HASH" ]; then
         echo "Checksum mismatch for $SIGN_EVENT_C, recompiling..."
-        compile_sign_event
+        download_sign_event
     fi
 else
     echo "Compiling $SIGN_EVENT_C..."
-    compile_sign_event
+    download_sign_event
 fi
 
 # Extract keys and identifiers
