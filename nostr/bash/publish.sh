@@ -1,22 +1,46 @@
 #!/bin/bash
 
+# Define the path for the event JSON file
+JSON_FILE="/tmp/send.json"
+
 # Read the event JSON from the send.json file
-EVENT_JSON=$(cat send.json)
+if [ ! -f "$JSON_FILE" ]; then
+    echo "Error: No event JSON provided"
+    exit 1
+fi
+
+EVENT_JSON=$(cat $JSON_FILE)
 
 # Ensure the event JSON is valid
 if [ -z "$EVENT_JSON" ]; then
-    echo "No event JSON provided"
+    echo "Error: Event JSON is empty"
     exit 1
 fi
 
 # Configuration
-IFS=',' read -r -a RELAYS <<< "$1"
+IFS=',' read -r -a RELAYS <<< "${1:-wss://orangesync.tech}"
 
 echo "JSON being sent: $EVENT_JSON"
 
 # Publish Event to Relays
+success_count=0
+total_relays=${#RELAYS[@]}
 for RELAY in "${RELAYS[@]}"; do
-    echo "Publishing to $RELAY"
-    echo $EVENT_JSON | /usr/local/bin/websocat "$RELAY" --text
+    echo "Publishing to $RELAY..."
+    RESPONSE=$(echo $EVENT_JSON | /usr/local/bin/websocat "$RELAY" --text)
+    if [[ "$RESPONSE" == *'"OK"'* ]]; then
+        echo "Success: Event accepted by $RELAY."
+        ((success_count++))
+    else
+        echo "Error: Event not accepted by $RELAY. Response: $RESPONSE"
+    fi
 done
+
+# Check if any publications succeeded
+if [[ "$success_count" -eq 0 ]]; then
+    echo "Error: All relay publications failed."
+    exit 1
+else
+    echo "Success: Published to $success_count out of $total_relays relay(s)."
+fi
 

@@ -3,7 +3,7 @@
 # Define the URL of the Python script
 URL="https://github.com/chGoodchild/nostrKeys/releases/download/v0.0.3/generate_npub.py"
 SEEDPHRASE="silk interest cruel fan chair bronze pond palace shield language trial citizen habit proof ankle book tourist book galaxy agent drum total idea frog"
-SCRIPT="generate_npub.py"
+SCRIPT="/tmp/generate_npub.py"
 OUTPUT_FILE="nostr_keys.json"
 
 # Check if the Python script is already present and matches the expected SHA-256 hash

@@ -5,32 +5,10 @@ WEBSOCAT_URL="https://github.com/vi/websocat/releases/download/v1.13.0/websocat.
 WEBSOCAT_BIN="websocat"
 WEBSOCAT_INSTALL_DIR="/usr/local/bin/"
 EXPECTED_WEBSOCAT_VERSION="v1.13.0"
-TOOLCHAIN_PREFIX="mips-linux-gnu"
-SECP256K1_DIR="/tmp/secp256k1_mips"
-INSTALL_DIR="/usr/local/mips-linux-gnu"
 
 # Function to check if a command exists
 function command_exists() {
     type "$1" &> /dev/null
-}
-
-# Function to install packages only if they are not already installed
-function install_packages_if_needed() {
-    local packages=("$@")
-    local to_install=()
-
-    for package in "${packages[@]}"; do
-        if ! dpkg -s "$package" &> /dev/null; then
-            to_install+=("$package")
-        fi
-    done
-
-    if [ ${#to_install[@]} -gt 0 ]; then
-        echo "Installing: ${to_install[*]}"
-        sudo apt-get install -y "${to_install[@]}"
-    else
-        echo "All packages are already installed."
-    fi
 }
 
 # Function to update package lists if not updated today
@@ -72,31 +50,9 @@ function install_websocat() {
     echo "Websocat installed/updated successfully."
 }
 
-# Function to install the MIPS cross-compiler
-function install_mips_cross_compiler() {
-    echo "Installing MIPS cross-compiler..."
-    install_packages_if_needed gcc-mips-linux-gnu g++-mips-linux-gnu
-}
-
-# Function to compile secp256k1 for MIPS
-function setup_secp256k1_mips() {
-    echo "Setting up secp256k1 for cross-compilation..."
-    if [ ! -d "$SECP256K1_DIR" ]; then
-        git clone https://github.com/bitcoin-core/secp256k1.git "$SECP256K1_DIR"
-    fi
-    cd "$SECP256K1_DIR"
-    ./autogen.sh
-    ./configure --host=${TOOLCHAIN_PREFIX} CC=${TOOLCHAIN_PREFIX}-gcc --prefix="$INSTALL_DIR" --enable-module-recovery
-    make
-    sudo make install
-    cd -  # Return to the original directory
-}
-
 # Main execution flow
 update_package_lists_if_needed
-install_mips_cross_compiler
-setup_secp256k1_mips
 install_websocat
 
-echo "Development environment setup complete."
+echo "Websocat setup complete."
 

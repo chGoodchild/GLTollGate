@@ -22,12 +22,12 @@ check_file "nostr_keys.json"
 # Run note_generator.sh with note content
 echo "Running note_generator.sh..."
 ./note_generator.sh "$NOTE_CONTENT"
-check_file "send.json"
+check_file "/tmp/send.json"
 
 # Run publish.sh with relay list
 echo "Running publish.sh..."
 PUBLISH_OUTPUT=$(./publish.sh "$RELAYS")
-if [[ "$PUBLISH_OUTPUT" == *'["OK",'* ]]; then
+if [[ "$PUBLISH_OUTPUT" == *"Success: Published to"* ]]; then
     echo "SUCCESS: publish.sh ran successfully and the event was accepted by the relay."
 else
     echo "ERROR: publish.sh failed or the event was not accepted by the relay."
