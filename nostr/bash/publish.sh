@@ -17,8 +17,12 @@ if [ -z "$EVENT_JSON" ]; then
     exit 1
 fi
 
-# Configuration
-IFS=',' read -r -a RELAYS <<< "${1:-wss://orangesync.tech}"
+# Check if relays are passed as arguments
+if [ -z "$1" ]; then
+    echo "Error: No relays provided"
+    exit 1
+fi
+IFS=',' read -r -a RELAYS <<< "$1"
 
 echo "JSON being sent: $EVENT_JSON"
 
