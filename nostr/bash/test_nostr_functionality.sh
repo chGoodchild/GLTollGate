@@ -3,7 +3,7 @@
 # Enable debugging to show commands and their arguments as they are executed
 # set -x
 
-NOTE_CONTENT="Hello, Nostr! $(date +%s)"
+NOTE_CONTENT="Hello, Nostr from $(uname -m)@$(date +%s)"
 NPUB="24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1"
 RELAYS="wss://puravida.nostr.land,wss://eden.nostr.land,wss://relay.snort.social,wss://orangesync.tech"
 
