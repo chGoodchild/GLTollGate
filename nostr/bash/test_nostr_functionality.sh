@@ -50,10 +50,11 @@ publish_events() {
 fetch_notes() {
     echo -e "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
     FETCH_OUTPUT=$(./fetch_notes.sh "$RELAYS" "$NPUB")
-    if [[ "$FETCH_OUTPUT" == *'Note Content:'* ]]; then
+    # Check for the expected NOTE_CONTENT within the fetched notes
+    if [[ "$FETCH_OUTPUT" == *"$NOTE_CONTENT"* ]]; then
         echo "SUCCESS: fetch_notes.sh ran successfully and the event was fetched."
     else
-        echo "ERROR: fetch_notes.sh did not fetch the expected event."
+        echo "ERROR: fetch_notes.sh did not fetch the expected event. Expected content not found."
         exit 1
     fi
 }
