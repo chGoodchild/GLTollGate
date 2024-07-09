@@ -11,10 +11,12 @@ RELAYS="wss://puravida.nostr.land,wss://eden.nostr.land,wss://relay.snort.social
 
 # Function to check if a file exists and is not empty
 check_file() {
-    echo -e "\n\n check_file $1"
     if [ -s "$1" ]; then
         echo "SUCCESS: $1 exists and is not empty."
     else
+        echo -e "\n\n ./generate_keys.sh"
+        echo -e "\n\n check_file $1"
+        echo -e "\n\n ./note_generator.sh \"$NOTE_CONTENT\""
         echo "ERROR: $1 does not exist or is empty."
         exit 1
     fi
@@ -22,25 +24,23 @@ check_file() {
 
 # Function to run the generate_keys.sh script
 generate_keys() {
-    echo -e "\n\n ./generate_keys.sh"
     ./generate_keys.sh
     check_file "nostr_keys.json"
 }
 
 # Function to run the note_generator.sh script
 generate_note() {
-    echo -e "\n\n ./note_generator.sh \"$NOTE_CONTENT\""
     ./note_generator.sh "$NOTE_CONTENT"
     check_file "/tmp/send.json"
 }
 
 # Function to run the publish.sh script
 publish_events() {
-    echo -e "\n\n ./publish.sh \"$RELAYS\""
     PUBLISH_OUTPUT=$(./publish.sh "$RELAYS")
     if [[ "$PUBLISH_OUTPUT" == *"Success: Published to"* ]]; then
         echo "SUCCESS: publish.sh ran successfully and the event was accepted by the relay."
     else
+        echo -e "\n\n ./publish.sh \"$RELAYS\""
         echo "ERROR: publish.sh failed or the event was not accepted by the relay."
         exit 1
     fi
@@ -48,12 +48,12 @@ publish_events() {
 
 # Function to run the fetch_notes.sh script
 fetch_notes() {
-    echo -e "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
     FETCH_OUTPUT=$(./fetch_notes.sh "$RELAYS" "$NPUB")
     # Check for the expected NOTE_CONTENT within the fetched notes
     if [[ "$FETCH_OUTPUT" == *"$NOTE_CONTENT"* ]]; then
         echo "SUCCESS: fetch_notes.sh ran successfully and the event was fetched."
     else
+        echo -e "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
         echo "ERROR: fetch_notes.sh did not fetch the expected event. Expected content not found."
         exit 1
     fi
@@ -65,7 +65,7 @@ generate_note
 publish_events
 fetch_notes
 
-echo -e "\n\nAll tests passed successfully."
+echo -e "\nAll tests passed successfully."
 
 # Disable debugging to clean up output
 # set +x
