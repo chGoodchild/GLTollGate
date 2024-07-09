@@ -58,9 +58,15 @@ function generate_event_json() {
     CONTENT=${1:-"Hello, Nostr!"}
     CREATED_AT=$(date +%s)
     SERIALIZED_EVENT="[0,\"$PUBLIC_KEY_HEX\",$CREATED_AT,1,[],\"$CONTENT\"]"
-    EVENT_HASH=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 -binary | xxd -p -c 64)
+    
+    # Generate the SHA-256 hash of the serialized event
+    EVENT_HASH=$(echo -n "$SERIALIZED_EVENT" | sha256sum | awk '{print $1}')
+
+    # Sign the hash using the private key
     SIGNATURE=$($BIN_PATH "$EVENT_HASH" "$PRIVATE_KEY_HEX")
-    EVENT_ID=$(echo -n "$SERIALIZED_EVENT" | openssl dgst -sha256 | awk '{print $2}')
+    
+    # Generate the event ID by hashing the serialized event
+    EVENT_ID=$(echo -n "$SERIALIZED_EVENT" | sha256sum | awk '{print $1}')
 
     # Create the event JSON
     EVENT=$(jq -n --arg id "$EVENT_ID" --arg pubkey "$PUBLIC_KEY_HEX" --argjson created_at "$CREATED_AT" --arg content "$CONTENT" --arg sig "$SIGNATURE" '{
