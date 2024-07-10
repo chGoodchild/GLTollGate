@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# set -x
+
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"
 
@@ -39,7 +41,7 @@ total_relays=0
 for RELAY in $RELAYS; do
     total_relays=$((total_relays + 1))
     echo "Publishing to $RELAY..."
-    RESPONSE=$(echo "$EVENT_JSON" | /usr/local/bin/websocat "$RELAY" --text)
+    RESPONSE=$(echo "$EVENT_JSON" | jq -c '.' | /usr/local/bin/websocat "$RELAY" --text)
     echo "Response: $RESPONSE"
     case "$RESPONSE" in
         *'"OK"'*)

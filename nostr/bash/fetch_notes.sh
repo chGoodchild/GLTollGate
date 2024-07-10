@@ -3,7 +3,6 @@
 # Check and install Websocat if necessary
 WEBSOCAT_BIN="/usr/local/bin/websocat"
 
-
 ./install/install_websocat.sh
 
 # Check if the correct number of arguments is provided
@@ -14,10 +13,10 @@ if [ "$#" -ne 2 ]; then
 fi
 
 # Extract and validate the relay URLs and public key from arguments
-IFS=',' read -r -a RELAYS <<< "$1"
-PUBLIC_KEY="$2"
+RELAYS=$1
+PUBLIC_KEY=$2
 
-if [ "${#RELAYS[@]}" -eq 0 ]; then
+if [ -z "$RELAYS" ]; then
     echo "Error: No relay URLs provided."
     exit 1
 fi
@@ -42,29 +41,33 @@ echo "Since Timestamp: $SINCE_TIMESTAMP"
 
 # Function to parse and print the notes from the relay messages
 parse_and_print_notes() {
-    while IFS= read -r message; do
-        echo "Received message: $message"
-        if echo "$message" | jq -e '.[0] == "EVENT"' > /dev/null; then
-            event=$(echo "$message" | jq -c '.[2]')
-            content=$(echo "$event" | jq -r '.content')
-            echo "Note Content: $content"
-        else
-            echo "Notice or Error from Relay: $message"
-        fi
-    done
+    message=$1
+    echo "Received message: $message"
+    if echo "$message" | jq -e '.[0] == "EVENT"' > /dev/null; then
+        event=$(echo "$message" | jq -c '.[2]')
+        content=$(echo "$event" | jq -r '.content')
+        echo "Note Content: $content"
+    else
+        echo "Notice or Error from Relay: $message"
+    fi
 }
 
 # Function to subscribe to a relay and listen for messages
 subscribe_to_relay() {
-    local RELAY=$1
+    RELAY=$1
     echo "Connecting to $RELAY"
-    (echo "$SUBSCRIPTION_REQUEST" | /usr/local/bin/websocat "$RELAY" --text | parse_and_print_notes) &
+    /usr/local/bin/websocat "$RELAY" --text | while IFS= read -r message; do
+        parse_and_print_notes "$message"
+    done
 }
 
 # Subscribe to each relay
-for RELAY in "${RELAYS[@]}"; do
-    subscribe_to_relay "$RELAY"
+OLD_IFS="$IFS"
+IFS=','
+for RELAY in $RELAYS; do
+    subscribe_to_relay "$RELAY" &
 done
+IFS="$OLD_IFS"
 
 # Wait for all background jobs to finish
 wait
