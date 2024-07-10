@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Check and install Websocat if necessary
 WEBSOCAT_BIN="/usr/local/bin/websocat"

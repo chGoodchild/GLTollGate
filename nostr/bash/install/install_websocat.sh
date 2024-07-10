@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Define URLs and file paths
 WEBSOCAT_URL="https://github.com/vi/websocat/releases/download/v1.13.0/websocat.x86_64-unknown-linux-musl"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Enable debugging to show commands and their arguments as they are executed
 # set -x
@@ -8,6 +8,8 @@ NPUB="24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1"
 RELAYS="wss://puravida.nostr.land,wss://eden.nostr.land,wss://relay.snort.social,wss://orangesync.tech"
 
 # RELAYS="wss://puravida.nostr.land,wss://eden.nostr.land,wss://relay.snort.social,wss://nostr.wine,wss://orangesync.tech,wss://atlas.nostr.land,wss://nostr-pub.wellorder.net,wss://nostr.mom,wss://relay.nostr.com.au,wss://filter.nostr.wine,wss://nostr.milou.lol,wss://relay.orangepill.dev,wss://relay.nostr.band,wss://relay.noswhere.com,wss://nostr.inosta.cc,wss://nos.lol,wss://nostr.bitcoiner.social,wss://relay.damus.io,wss://relay.nostr.bg,wss://nostr.oxtr.dev"
+
+./install/install_jq.sh
 
 # Function to check if a file exists and is not empty
 check_file() {
@@ -37,7 +39,7 @@ generate_note() {
 # Function to run the publish.sh script
 publish_events() {
     PUBLISH_OUTPUT=$(./publish.sh "$RELAYS")
-    if [[ "$PUBLISH_OUTPUT" == *"Success: Published to"* ]]; then
+    if echo "$PUBLISH_OUTPUT" | grep -q "Success: Published to"; then
         echo "SUCCESS: publish.sh ran successfully and the event was accepted by the relay."
     else
         echo -e "\n\n ./publish.sh \"$RELAYS\""
@@ -50,7 +52,7 @@ publish_events() {
 fetch_notes() {
     FETCH_OUTPUT=$(./fetch_notes.sh "$RELAYS" "$NPUB")
     # Check for the expected NOTE_CONTENT within the fetched notes
-    if [[ "$FETCH_OUTPUT" == *"$NOTE_CONTENT"* ]]; then
+    if echo "$FETCH_OUTPUT" | grep -q "$NOTE_CONTENT"; then
         echo "SUCCESS: fetch_notes.sh ran successfully and the event was fetched."
     else
         echo -e "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""

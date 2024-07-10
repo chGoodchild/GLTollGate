@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Define the URL of the Python script
 URL="https://github.com/chGoodchild/nostrKeys/releases/download/v0.0.3/generate_npub.py"
@@ -6,14 +6,12 @@ SEEDPHRASE="silk interest cruel fan chair bronze pond palace shield language tri
 SCRIPT="/tmp/generate_npub.py"
 OUTPUT_FILE="$(dirname "$(realpath "$0")")/nostr_keys.json"
 
-
 # Function to check if nostr_keys.json is valid
 check_nostr_keys() {
     if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
-        REQUIRED_KEYS=("npub" "nsec" "nsec_hex" "npub_hex" "bip39_nsec")
-        for key in "${REQUIRED_KEYS[@]}"; do
+        for key in npub nsec nsec_hex npub_hex bip39_nsec; do
             value=$(jq -r --arg key "$key" '.[$key]' "$OUTPUT_FILE")
-            if [ -z "$value" ] || [ "$value" == "null" ]; then
+            if [ -z "$value" ] || [ "$value" = "null" ]; then
                 echo "Error: Missing or empty value for $key in $OUTPUT_FILE"
                 exit 1
             fi
@@ -26,7 +24,7 @@ check_nostr_keys() {
 }
 
 # Check if Python is installed
-if command -v python3 &> /dev/null; then
+if command -v python3 > /dev/null; then
     ./install/install_keygen.sh
     # Ensure the script is executable
     chmod +x $SCRIPT

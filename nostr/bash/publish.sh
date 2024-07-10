@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"

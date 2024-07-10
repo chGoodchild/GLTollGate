@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Define file paths and constants
 JSON_FILE="nostr_keys.json"
