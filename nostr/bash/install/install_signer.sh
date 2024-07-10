@@ -40,7 +40,7 @@ download_and_verify_binary() {
     wget -q $BINARY_URL -O $BINARY_PATH
     CURRENT_HASH=$(sha256sum $BINARY_PATH | awk '{ print $1 }')
     
-    if [[ "$CURRENT_HASH" != "$EXPECTED_HASH" ]]; then
+    if [ "$CURRENT_HASH" != "$EXPECTED_HASH" ]; then
         echo "Error: Checksum verification failed."
         exit 1
     fi
@@ -52,7 +52,7 @@ download_and_verify_binary() {
 # Check if the binary is already in the install directory and has the correct checksum
 if [ -f "$TARGET_BINARY_PATH" ]; then
     CURRENT_HASH=$(sha256sum $TARGET_BINARY_PATH | awk '{ print $1 }')
-    if [[ "$CURRENT_HASH" == "$EXPECTED_HASH" ]]; then
+    if [ "$CURRENT_HASH" = "$EXPECTED_HASH" ]; then
         # echo "$TARGET_BINARY_PATH is up to date."
         exit 0
     else

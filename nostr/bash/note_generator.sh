@@ -16,7 +16,7 @@ if [ ! -f "$CHECKSUMS_FILE" ]; then
 fi
 
 # Function to ensure the binary is executable
-function ensure_executable() {
+ensure_executable() {
     if [ -f "$1" ]; then
         if [ ! -x "$1" ]; then
             echo "Setting execute permission on $1"
@@ -46,7 +46,7 @@ esac
 $SCRIPT_DIR/install/install_signer.sh
 
 # Function to generate event and JSON
-function generate_event_json() {
+generate_event_json() {
     # Extract keys and identifiers
     PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$JSON_FILE")
     PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$JSON_FILE")
