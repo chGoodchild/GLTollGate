@@ -4,7 +4,10 @@
 URL="https://github.com/chGoodchild/nostrKeys/releases/download/v0.0.3/generate_npub.py"
 SEEDPHRASE="silk interest cruel fan chair bronze pond palace shield language trial citizen habit proof ankle book tourist book galaxy agent drum total idea frog"
 SCRIPT="/tmp/generate_npub.py"
-OUTPUT_FILE="$(dirname "$(realpath "$0")")/nostr_keys.json"
+
+# Get the absolute path to the script directory
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+OUTPUT_FILE="$SCRIPT_DIR/nostr_keys.json"
 
 # Function to check if nostr_keys.json is valid
 check_nostr_keys() {
