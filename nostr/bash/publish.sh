@@ -5,8 +5,8 @@
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"
 
-# Call the install script for websocat
-./install/install_websocat.sh
+# Call the build script for RelayLink
+./build_relay_link.sh
 
 # Read the event JSON from the send.json file
 if [ ! -f "$JSON_FILE" ]; then
@@ -41,7 +41,7 @@ total_relays=0
 for RELAY in $RELAYS; do
     total_relays=$((total_relays + 1))
     echo "Publishing to $RELAY..."
-    RESPONSE=$(echo "$EVENT_JSON" | jq -c '.' | /usr/local/bin/websocat "$RELAY" --text)
+    RESPONSE=$(./RelayLink "$RELAY" "$EVENT_JSON" "NULL")
     echo "Response: $RESPONSE"
     case "$RESPONSE" in
         *'"OK"'*)

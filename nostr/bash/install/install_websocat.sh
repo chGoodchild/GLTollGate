@@ -1,14 +1,19 @@
 #!/bin/sh
 
 # Define URLs and file paths
-WEBSOCAT_URL="https://github.com/vi/websocat/releases/download/v1.13.0/websocat.x86_64-unknown-linux-musl"
 WEBSOCAT_BIN="websocat"
-WEBSOCAT_INSTALL_DIR="/usr/bin/"
 EXPECTED_WEBSOCAT_VERSION="1.13.0"
+TMP_DIR="/tmp"
+
+# Ensure opkg is using /tmp as a valid destination
+if ! grep -q "dest tmp /tmp" /etc/opkg.conf; then
+    echo "Adding 'dest tmp /tmp' to /etc/opkg.conf"
+    echo "dest tmp /tmp" >> /etc/opkg.conf
+fi
 
 # Check if Websocat is installed and if the version matches
-if [ -x "$WEBSOCAT_INSTALL_DIR$WEBSOCAT_BIN" ]; then
-    INSTALLED_VERSION=$($WEBSOCAT_INSTALL_DIR$WEBSOCAT_BIN --version | awk '{print $2}')
+if [ -x "$TMP_DIR/$WEBSOCAT_BIN" ]; then
+    INSTALLED_VERSION=$($TMP_DIR/$WEBSOCAT_BIN --version | awk '{print $2}')
     if [ "$INSTALLED_VERSION" = "$EXPECTED_WEBSOCAT_VERSION" ]; then
         echo "Correct version of Websocat is already installed."
         exit 0
@@ -25,57 +30,33 @@ command_exists() {
     command -v "$1" > /dev/null 2>&1
 }
 
-# Function to update package lists if not updated today for Debian-based systems
-update_package_lists_if_needed_apt() {
-    update_marker="/var/lib/apt/periodic/update-success-stamp"
+# Function to update package lists if not updated today
+update_package_lists_if_needed() {
+    update_marker="/var/lib/opkg/status"
 
     if [ ! -f "$update_marker" ] || [ "$(date +%Y-%m-%d -r "$update_marker")" != "$(date +%Y-%m-%d)" ]; then
-        echo "Running apt-get update..."
-        sudo apt-get update
+        echo "Running opkg update..."
+        opkg update
     else
-        echo "apt-get update has already been run today."
+        echo "opkg update has already been run today."
     fi
-}
-
-# Function to update package lists if not updated today for OpenWRT systems
-update_package_lists_if_needed_opkg() {
-    echo "Running opkg update..."
-    opkg update
 }
 
 # Function to install Websocat
 install_websocat() {
-    # Download the websocat binary
-    wget -q $WEBSOCAT_URL -O $WEBSOCAT_BIN
+    echo "Installing websocat using opkg..."
+    opkg --dest tmp install websocat
 
-    # Make it executable
-    chmod +x $WEBSOCAT_BIN
-
-    # Move it to the install directory
-    sudo mv $WEBSOCAT_BIN $WEBSOCAT_INSTALL_DIR
-
-    echo "Websocat installed/updated successfully."
+    if [ $? -eq 0 ]; then
+        echo "Websocat installed/updated successfully at /tmp/websocat."
+    else
+        echo "Failed to install websocat."
+        exit 1
+    fi
 }
 
-# Detect if the system is OpenWRT or Debian-based
-if [ -f /etc/openwrt_release ]; then
-    # System is OpenWRT
-    PACKAGE_MANAGER="opkg"
-elif [ -f /etc/debian_version ]; then
-    # System is Debian-based
-    PACKAGE_MANAGER="apt-get"
-else
-    echo "Unsupported system."
-    exit 1
-fi
-
 # Main execution flow
-if [ "$PACKAGE_MANAGER" = "apt-get" ]; then
-    update_package_lists_if_needed_apt
-elif [ "$PACKAGE_MANAGER" = "opkg" ]; then
-    update_package_lists_if_needed_opkg
-fi
-
+update_package_lists_if_needed
 install_websocat
 
 echo "Websocat setup complete."

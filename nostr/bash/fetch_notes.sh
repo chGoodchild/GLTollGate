@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# Check and install Websocat if necessary
-WEBSOCAT_BIN="/usr/local/bin/websocat"
+# Check and build RelayLink if necessary
+RELAYLINK_BIN="./RelayLink"
 
-./install/install_websocat.sh
+./build_relay_link.sh
 
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 2 ]; then
@@ -58,7 +58,7 @@ subscribe_to_relay() {
     RELAY=$1
     echo "Connecting to $RELAY"
     # Send subscription request
-    echo "$SUBSCRIPTION_REQUEST" | /usr/local/bin/websocat "$RELAY" --text | parse_and_print_notes &
+    ./RelayLink "$RELAY" "NULL" "$PUBLIC_KEY" | parse_and_print_notes &
 }
 
 # Subscribe to each relay
@@ -71,5 +71,4 @@ IFS="$OLD_IFS"
 
 # Wait for all background jobs to finish
 wait
-
 
