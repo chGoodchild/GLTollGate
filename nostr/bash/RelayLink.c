@@ -5,6 +5,7 @@
 #include <jansson.h>
 #include <signal.h>
 #include <regex.h>
+#include <openssl/ssl.h>
 
 static struct lws_context *context;
 static volatile int force_exit = 0;
@@ -99,10 +100,24 @@ int main(int argc, char **argv) {
 
     parse_url(relay_url, hostname, path, &port, &use_ssl);
 
+    // Initialize OpenSSL library
+    SSL_library_init();
+    SSL_load_error_strings();
+    OpenSSL_add_all_algorithms();
+
     struct lws_context_creation_info info;
     memset(&info, 0, sizeof(info));
     info.port = CONTEXT_PORT_NO_LISTEN;
     info.protocols = protocols;
+
+    // Enable detailed logging
+    lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG | LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY, NULL);
+
+    if (use_ssl) {
+        info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+        info.ssl_ca_filepath = "/etc/ssl/certs/ca-certificates.crt";  // Update this path to your CA certificates
+        info.ssl_cipher_list = "DEFAULT:!DH";
+    }
 
     context = lws_create_context(&info);
     if (!context) {
@@ -117,10 +132,10 @@ int main(int argc, char **argv) {
     ccinfo.address = hostname;
     ccinfo.port = port;
     ccinfo.path = path;
-    ccinfo.host = lws_canonical_hostname(context);
-    ccinfo.origin = "origin";
-    ccinfo.protocol = protocols[0].name;
-    ccinfo.ssl_connection = use_ssl ? LCCSCF_USE_SSL : 0;
+    ccinfo.host = "orangesync.tech";  // Use the hostname that matches the SSL certificate
+    ccinfo.origin = "orangesync.tech";
+    ccinfo.local_protocol_name = protocols[0].name;
+    ccinfo.ssl_connection = use_ssl ? LCCSCF_USE_SSL | LCCSCF_ALLOW_SELFSIGNED | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK : 0;
 
     if (!lws_client_connect_via_info(&ccinfo)) {
         fprintf(stderr, "Client connection failed\n");

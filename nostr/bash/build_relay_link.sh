@@ -26,13 +26,13 @@ install_dependencies() {
     else
         sudo apt-get update
     fi
-    sudo apt-get install -y libwebsockets-dev libjansson-dev gcc
+    sudo apt-get install -y libwebsockets-dev libjansson-dev gcc libssl-dev
 }
 
 # Function to compile the C program
 compile_program() {
     echo "Compiling ${C_FILE}..."
-    gcc -o "${PROGRAM_NAME}" "${C_FILE}" -lwebsockets -ljansson
+    gcc -o "${PROGRAM_NAME}" "${C_FILE}" -lwebsockets -ljansson -lssl -lcrypto
     if [ $? -eq 0 ]; then
         echo "Compilation successful. The binary is named ${PROGRAM_NAME}."
     else
