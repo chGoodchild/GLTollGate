@@ -3,26 +3,55 @@
 # Define file paths and constants
 JSON_FILE="nostr_keys.json"
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-SIGN_EVENT_BIN_LOCAL="$SCRIPT_DIR/sign_event_local"
-SIGN_EVENT_BIN_MIPS="$SCRIPT_DIR/sign_event_mips"
 CHECKSUMS_FILE="$SCRIPT_DIR/checksums.json"
 OUTPUT_FILE="/tmp/send.json"
 
+# URLs of the binaries and checksums
+CHECKSUMS_URL="https://github.com/chGoodchild/nostrSigner/releases/download/v0.0.4/checksums.json"
+SIGN_EVENT_URL_LOCAL="https://github.com/chGoodchild/nostrSigner/releases/download/v0.0.4/sign_event_local"
+SIGN_EVENT_URL_MIPS="https://github.com/chGoodchild/nostrSigner/releases/download/v0.0.4/sign_event_mips"
+
+# Paths to download binaries
+TMP_DIR="/tmp"
+SIGN_EVENT_BIN_LOCAL="$TMP_DIR/sign_event_local"
+SIGN_EVENT_BIN_MIPS="$TMP_DIR/sign_event_mips"
+
 # Check and download checksums.json if it doesn't exist
-CHECKSUMS_URL="https://github.com/chGoodchild/nostrSigner/releases/download/v0.0.1/checksums.json"
 if [ ! -f "$CHECKSUMS_FILE" ]; then
     echo "Downloading checksums.json..."
     wget -q $CHECKSUMS_URL -O $CHECKSUMS_FILE
 fi
 
-# Function to ensure the binary is executable
-ensure_executable() {
-    if [ -f "$1" ]; then
-        if [ ! -x "$1" ]; then
-            echo "Setting execute permission on $1"
-            chmod +x $1
-        fi
+# Function to download and ensure the binary is executable
+download_and_ensure_executable() {
+    url=$1
+    path=$2
+    expected_hash=$3
+    if [ ! -f "$path" ]; then
+        echo "Downloading $path..."
+        wget -q $url -O $path
     fi
+
+    verify_checksum $path $expected_hash
+
+    if [ ! -x "$path" ]; then
+        echo "Setting execute permission on $path"
+        chmod +x $path
+    fi
+}
+
+# Function to verify the checksum of a file
+verify_checksum() {
+    path=$1
+    expected_hash=$2
+    actual_hash=$(sha256sum $path | awk '{print $1}')
+    if [ "$actual_hash" != "$expected_hash" ]; then
+        echo "Checksum verification failed for $path"
+        echo "Expected: $expected_hash"
+        echo "Actual: $actual_hash"
+        exit 1
+    fi
+    echo "Checksum verification passed for $path"
 }
 
 # Determine the architecture of the current system
@@ -30,11 +59,13 @@ ARCH=$(uname -m)
 case $ARCH in
     x86_64)
         BIN_PATH=$SIGN_EVENT_BIN_LOCAL
-        EXPECTED_HASH=$(jq -r '.local_binary_checksum' $CHECKSUMS_FILE)
+        EXPECTED_HASH=$(jq -r '.sign_event_local_checksum' $CHECKSUMS_FILE)
+        DOWNLOAD_URL=$SIGN_EVENT_URL_LOCAL
         ;;
     mips)
         BIN_PATH=$SIGN_EVENT_BIN_MIPS
-        EXPECTED_HASH=$(jq -r '.mips_binary_checksum' $CHECKSUMS_FILE)
+        EXPECTED_HASH=$(jq -r '.sign_event_mips_checksum' $CHECKSUMS_FILE)
+        DOWNLOAD_URL=$SIGN_EVENT_URL_MIPS
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
@@ -42,17 +73,14 @@ case $ARCH in
         ;;
 esac
 
-# Call the install script to ensure the binary is available and up-to-date
-$SCRIPT_DIR/install/install_signer.sh
+# Download the binary if it does not exist or is not executable and verify its checksum
+download_and_ensure_executable $DOWNLOAD_URL $BIN_PATH $EXPECTED_HASH
 
 # Function to generate event and JSON
 generate_event_json() {
     # Extract keys and identifiers
     PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$JSON_FILE")
     PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$JSON_FILE")
-
-    # Ensure the binary is executable
-    ensure_executable $BIN_PATH
 
     # Event data
     CONTENT=${1:-"Hello, Nostr!"}
