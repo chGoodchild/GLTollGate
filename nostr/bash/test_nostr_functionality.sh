@@ -52,9 +52,7 @@ publish_events() {
 
 # Function to run the fetch_notes.sh script
 fetch_notes() {
-    echo "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
     FETCH_OUTPUT=$(./fetch_notes.sh "$RELAYS" "$NPUB")
-    echo "$FETCH_OUTPUT"
     # Check for the expected NOTE_CONTENT within the fetched notes
     if echo "$FETCH_OUTPUT" | grep -q "$NOTE_CONTENT"; then
         echo "SUCCESS: fetch_notes.sh ran successfully and the event was fetched."

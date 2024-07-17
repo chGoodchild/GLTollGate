@@ -27,7 +27,7 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
                                void *user, void *in, size_t len) {
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
-	    // printf("Client connected to relay\n");
+            // printf("Client connected to relay\n");
             if (event_json) {
                 lws_write(wsi, (unsigned char *)event_json, strlen(event_json), LWS_WRITE_TEXT);
             } else {
@@ -57,7 +57,7 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
             force_exit = 1;
             break;
         case LWS_CALLBACK_CLIENT_CLOSED:
-	    // fprintf(stderr, "Client disconnected from relay\n");
+            // fprintf(stderr, "Client disconnected from relay\n");
             force_exit = 1;
             break;
         default:
@@ -173,8 +173,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    while (!force_exit && !(event_json ? event_published : eose_received)) {
-        lws_service(context, 1000);
+    while (!force_exit && !event_published && !eose_received) {
+      lws_service(context, 100);
     }
 
     lws_context_destroy(context);

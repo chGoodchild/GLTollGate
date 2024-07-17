@@ -3,7 +3,7 @@
 # Check and build RelayLink if necessary
 RELAYLINK_BIN="./RelayLink"
 
-./build_relay_link.sh
+# ./build_relay_link.sh
 
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 2 ]; then
