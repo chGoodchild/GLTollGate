@@ -40,6 +40,7 @@ generate_note() {
 
 # Function to run the publish.sh script
 publish_events() {
+    echo -e "\n\n ./publish.sh \"$RELAYS\""
     PUBLISH_OUTPUT=$(./publish.sh "$RELAYS")
     if echo "$PUBLISH_OUTPUT" | grep -q "Success: Published to"; then
         echo "SUCCESS: publish.sh ran successfully and the event was accepted by the relay."

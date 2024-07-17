@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <regex.h>
 #include <openssl/ssl.h>
+#include <arpa/inet.h>  // Include this header for inet_pton
 
 static struct lws_context *context;
 static volatile int force_exit = 0;
@@ -100,6 +101,14 @@ int main(int argc, char **argv) {
 
     parse_url(relay_url, hostname, path, &port, &use_ssl);
 
+    // Check if the hostname is an IP address
+    struct in_addr ipv4addr;
+    struct in6_addr ipv6addr;
+    if (inet_pton(AF_INET, hostname, &ipv4addr) == 1 || inet_pton(AF_INET6, hostname, &ipv6addr) == 1) {
+        fprintf(stderr, "Error: Please provide a domain name instead of an IP address.\n");
+        return 1;
+    }
+
     // Initialize OpenSSL library
     SSL_library_init();
     SSL_load_error_strings();
@@ -111,7 +120,7 @@ int main(int argc, char **argv) {
     info.protocols = protocols;
 
     // Enable detailed logging
-    lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG | LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY, NULL);
+    // lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG | LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY, NULL);
 
     if (use_ssl) {
         info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
@@ -132,8 +141,8 @@ int main(int argc, char **argv) {
     ccinfo.address = hostname;
     ccinfo.port = port;
     ccinfo.path = path;
-    ccinfo.host = "orangesync.tech";  // Use the hostname that matches the SSL certificate
-    ccinfo.origin = "orangesync.tech";
+    ccinfo.host = hostname;  // Use the hostname provided by the user
+    ccinfo.origin = hostname;
     ccinfo.local_protocol_name = protocols[0].name;
     ccinfo.ssl_connection = use_ssl ? LCCSCF_USE_SSL | LCCSCF_ALLOW_SELFSIGNED | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK : 0;
 
