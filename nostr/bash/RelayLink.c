@@ -10,6 +10,7 @@
 
 static struct lws_context *context;
 static volatile int force_exit = 0;
+static volatile int message_sent = 0; // Flag to indicate message sent
 
 static const char *relay_url;
 static const char *event_json;
@@ -35,6 +36,8 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
             break;
         case LWS_CALLBACK_CLIENT_RECEIVE:
             printf("Received: %s\n", (char *)in);
+            message_sent = 1; // Set the flag when a message is received
+            lws_cancel_service(context); // Exit the service loop
             break;
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             printf("Client connection error\n");
@@ -157,7 +160,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    while (!force_exit) {
+    while (!force_exit && !message_sent) {
         lws_service(context, 1000);
     }
 

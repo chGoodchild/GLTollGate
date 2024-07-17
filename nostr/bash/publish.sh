@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+# set -x
 
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"
