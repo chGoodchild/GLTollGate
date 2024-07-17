@@ -94,6 +94,11 @@ int main(int argc, char **argv) {
     event_json = (strcmp(argv[2], "NULL") == 0) ? NULL : argv[2];
     public_key = argv[3];
 
+    if (!relay_url || (!event_json && !public_key)) {
+        fprintf(stderr, "Error: Missing required arguments.\nUsage: %s <relay_url> <event_json | NULL> <public_key>\n", argv[0]);
+        return 1;
+    }
+
     char hostname[256];
     char path[256];
     int port;

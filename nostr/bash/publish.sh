@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# set -x
+set -x
 
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"
@@ -29,9 +29,7 @@ if [ -z "$1" ]; then
 fi
 
 # Convert the comma-separated relays string into an array
-IFS=',' 
-set -- $1
-RELAYS=$@
+RELAYS=$(echo "$1" | tr ',' ' ')
 
 echo "JSON being sent: $EVENT_JSON"
 
@@ -43,15 +41,12 @@ for RELAY in $RELAYS; do
     echo "Publishing to $RELAY..."
     RESPONSE=$(./RelayLink "$RELAY" "$EVENT_JSON" "NULL")
     echo "Response: $RESPONSE"
-    case "$RESPONSE" in
-        *'"OK"'*)
-            echo "Success: Event accepted by $RELAY."
-            success_count=$((success_count + 1))
-            ;;
-        *)
-            echo "Error: Event not accepted by $RELAY. Response: $RESPONSE"
-            ;;
-    esac
+    if echo "$RESPONSE" | grep -q '"OK"'; then
+        echo "Success: Event accepted by $RELAY."
+        success_count=$((success_count + 1))
+    else
+        echo "Error: Event not accepted by $RELAY. Response: $RESPONSE"
+    fi
 done
 
 # Check if any publications succeeded
