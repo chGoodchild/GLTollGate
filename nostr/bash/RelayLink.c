@@ -39,14 +39,16 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
         case LWS_CALLBACK_CLIENT_WRITEABLE:
             if (event_json) {
                 lws_write(wsi, (unsigned char *)event_json, strlen(event_json), LWS_WRITE_TEXT);
-                event_published = 1; // Set the flag when the event is published
-                lws_cancel_service(context); // Exit the service loop
+                // No need to set event_published flag here since we'll check for the response
             }
             break;
         case LWS_CALLBACK_CLIENT_RECEIVE:
             printf("%s\n", (char *)in);
             if (strstr((char *)in, "\"EOSE\"")) {
                 eose_received = 1; // Set the flag when EOSE is received
+                lws_cancel_service(context); // Exit the service loop
+            } else if (strstr((char *)in, "\"OK\"")) {
+                event_published = 1; // Set the flag when the event is acknowledged
                 lws_cancel_service(context); // Exit the service loop
             }
             break;
@@ -55,7 +57,7 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
             force_exit = 1;
             break;
         case LWS_CALLBACK_CLIENT_CLOSED:
-            fprintf(stderr, "Client disconnected from relay\n");
+	    // fprintf(stderr, "Client disconnected from relay\n");
             force_exit = 1;
             break;
         default:
