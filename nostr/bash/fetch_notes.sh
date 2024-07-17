@@ -29,7 +29,7 @@ fi
 # Define the subscription ID and the timestamp to fetch events from
 SUBSCRIPTION_ID="sub1"
 CURRENT_TIMESTAMP=$(date +%s)
-SINCE_TIMESTAMP=$((CURRENT_TIMESTAMP - 3600))  # Fetch events from the last hour
+SINCE_TIMESTAMP=$((CURRENT_TIMESTAMP - 600))  # Fetch events from the last 10 minutes
 
 # Create a subscription request
 SUBSCRIPTION_REQUEST=$(jq -c -n --arg id "$SUBSCRIPTION_ID" --arg key "$PUBLIC_KEY" --argjson since "$SINCE_TIMESTAMP" '[ "REQ", $id, { "authors": [ $key ], "since": $since } ]')
@@ -61,8 +61,10 @@ subscribe_to_relay() {
     RELAY=$1
     echo "Connecting to $RELAY"
     # Send subscription request and parse messages
+    echo './RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"'
+    ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"
     # ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY" | parse_and_print_notes &
-    ./RelayLink "$RELAY" "NULL" "$PUBLIC_KEY" | parse_and_print_notes &
+    # ./RelayLink "$RELAY" "NULL" "$PUBLIC_KEY" | parse_and_print_notes &
 }
 
 # Subscribe to each relay

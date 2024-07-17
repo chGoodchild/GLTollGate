@@ -18,9 +18,9 @@ check_file() {
     if [ -s "$1" ]; then
         echo "SUCCESS: $1 exists and is not empty."
     else
-        echo -e "\n\n ./generate_keys.sh"
-        echo -e "\n\n check_file $1"
-        echo -e "\n\n ./note_generator.sh \"$NOTE_CONTENT\""
+        echo "\n\n ./generate_keys.sh"
+        echo "\n\n check_file $1"
+        echo "\n\n ./note_generator.sh \"$NOTE_CONTENT\""
         echo "ERROR: $1 does not exist or is empty."
         exit 1
     fi
@@ -44,7 +44,7 @@ publish_events() {
     if echo "$PUBLISH_OUTPUT" | grep -q "Success: Published to"; then
         echo "SUCCESS: publish.sh ran successfully and the event was accepted by the relay."
     else
-        echo -e "\n\n ./publish.sh \"$RELAYS\""
+        echo "\n\n ./publish.sh \"$RELAYS\""
         echo "ERROR: publish.sh failed or the event was not accepted by the relay."
         exit 1
     fi
@@ -52,12 +52,14 @@ publish_events() {
 
 # Function to run the fetch_notes.sh script
 fetch_notes() {
+    echo "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
     FETCH_OUTPUT=$(./fetch_notes.sh "$RELAYS" "$NPUB")
+    echo "$FETCH_OUTPUT"
     # Check for the expected NOTE_CONTENT within the fetched notes
     if echo "$FETCH_OUTPUT" | grep -q "$NOTE_CONTENT"; then
         echo "SUCCESS: fetch_notes.sh ran successfully and the event was fetched."
     else
-        echo -e "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
+        echo "\n\n ./fetch_notes.sh \"$RELAYS\" \"$NPUB\""
         echo "ERROR: fetch_notes.sh did not fetch the expected event. Expected content not found."
         exit 1
     fi
@@ -69,7 +71,7 @@ generate_note
 publish_events
 fetch_notes
 
-echo -e "\nAll tests passed successfully."
+echo "\nAll tests passed successfully."
 
 # Disable debugging to clean up output
 # set +x
