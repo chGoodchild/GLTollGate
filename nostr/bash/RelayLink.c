@@ -6,12 +6,13 @@
 #include <signal.h>
 #include <regex.h>
 #include <openssl/ssl.h>
-#include <arpa/inet.h>  // Include this header for inet_pton
+#include <arpa/inet.h>
 #include <time.h>
 
 static struct lws_context *context;
 static volatile int force_exit = 0;
 static volatile int eose_received = 0; // Flag for EOSE
+static volatile int event_published = 0; // Flag for event published
 
 static const char *relay_url;
 static const char *event_json;
@@ -26,7 +27,7 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
                                void *user, void *in, size_t len) {
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
-            printf("Client connected to relay\n");
+	    // printf("Client connected to relay\n");
             if (event_json) {
                 lws_write(wsi, (unsigned char *)event_json, strlen(event_json), LWS_WRITE_TEXT);
             } else {
@@ -35,19 +36,26 @@ static int callback_websockets(struct lws *wsi, enum lws_callback_reasons reason
                 lws_write(wsi, (unsigned char *)buffer, strlen(buffer), LWS_WRITE_TEXT);
             }
             break;
+        case LWS_CALLBACK_CLIENT_WRITEABLE:
+            if (event_json) {
+                lws_write(wsi, (unsigned char *)event_json, strlen(event_json), LWS_WRITE_TEXT);
+                event_published = 1; // Set the flag when the event is published
+                lws_cancel_service(context); // Exit the service loop
+            }
+            break;
         case LWS_CALLBACK_CLIENT_RECEIVE:
-            printf("Received: %s\n", (char *)in);
+            printf("%s\n", (char *)in);
             if (strstr((char *)in, "\"EOSE\"")) {
                 eose_received = 1; // Set the flag when EOSE is received
                 lws_cancel_service(context); // Exit the service loop
             }
             break;
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-            printf("Client connection error\n");
+            fprintf(stderr, "Client connection error\n");
             force_exit = 1;
             break;
         case LWS_CALLBACK_CLIENT_CLOSED:
-            printf("Client disconnected from relay\n");
+            fprintf(stderr, "Client disconnected from relay\n");
             force_exit = 1;
             break;
         default:
@@ -163,7 +171,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    while (!force_exit && !eose_received) {
+    while (!force_exit && !(event_json ? event_published : eose_received)) {
         lws_service(context, 1000);
     }
 

@@ -42,19 +42,16 @@ echo "Since Timestamp: $SINCE_TIMESTAMP"
 # Function to parse and print the notes from the relay messages
 parse_and_print_notes() {
     while IFS= read -r message; do
-        echo "Received message: $message"
-        
-        # Attempt to parse the message as JSON
-        if echo "$message" | jq -e . >/dev/null 2>&1; then
-            if echo "$message" | jq -e '.[0] == "EVENT"' >/dev/null; then
-                event=$(echo "$message" | jq -c '.[2]')
-                content=$(echo "$event" | jq -r '.content')
-                echo "Note Content: $content"
-            else
-                echo "Notice or Error from Relay: $message"
-            fi
+        echo "$message"
+        if echo "$message" | jq -e '.[0] == "EVENT"' > /dev/null; then
+            event=$(echo "$message" | jq -c '.[2]')
+            content=$(echo "$event" | jq -r '.content')
+            # echo "Note Content: $content"
+        elif echo "$message" | jq -e '.[0] == "EOSE"' > /dev/null; then
+            echo "EOSE received. No more events."
+            break
         else
-            echo "Invalid JSON message: $message"
+            echo "Notice or Error from Relay: $message"
         fi
     done
 }
@@ -64,7 +61,8 @@ subscribe_to_relay() {
     RELAY=$1
     echo "Connecting to $RELAY"
     # Send subscription request and parse messages
-    ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY" | parse_and_print_notes &
+    # ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY" | parse_and_print_notes &
+    ./RelayLink "$RELAY" "NULL" "$PUBLIC_KEY" | parse_and_print_notes &
 }
 
 # Subscribe to each relay
