@@ -1,9 +1,7 @@
 #!/bin/sh
 
-# Check and build RelayLink if necessary
-RELAYLINK_BIN="./RelayLink"
-
-# ./build_relay_link.sh
+# Ensure RelayLink is installed and ready to use
+./install/install_relay_link.sh
 
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 2 ]; then
@@ -61,8 +59,7 @@ subscribe_to_relay() {
     RELAY=$1
     echo "Connecting to $RELAY"
     # Send subscription request and parse messages
-    # echo './RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"'
-    ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"
+    /tmp/./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"
 }
 
 # Subscribe to each relay

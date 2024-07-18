@@ -5,8 +5,8 @@
 # Define the path for the event JSON file
 JSON_FILE="/tmp/send.json"
 
-# Call the build script for RelayLink
-./build_relay_link.sh
+# Ensure RelayLink is installed and ready to use
+./install/install_relay_link.sh
 
 # Read the event JSON from the send.json file
 if [ ! -f "$JSON_FILE" ]; then
@@ -39,7 +39,7 @@ total_relays=0
 for RELAY in $RELAYS; do
     total_relays=$((total_relays + 1))
     echo "Publishing to $RELAY..."
-    RESPONSE=$(./RelayLink "$RELAY" "$EVENT_JSON" "NULL")
+    RESPONSE=$(/tmp/./RelayLink "$RELAY" "$EVENT_JSON" "NULL")
     echo "Response: $RESPONSE"
     if echo "$RESPONSE" | grep -q '"OK"'; then
         echo "Success: Event accepted by $RELAY."

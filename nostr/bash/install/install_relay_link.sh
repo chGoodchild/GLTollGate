@@ -14,14 +14,14 @@ if [ ! -f "$CHECKSUMS_FILE" ]; then
     wget -q $CHECKSUMS_URL -O $CHECKSUMS_FILE
 fi
 
+BINARY_PATH="/tmp/RelayLink"
+
 case $ARCH in
     x86_64)
         BINARY_URL="https://github.com/chGoodchild/TollGateNostrToolKit/releases/download/v0.0.5/RelayLink"
-        BINARY_PATH="/tmp/RelayLink"
         ;;
     mips)
         BINARY_URL="https://github.com/chGoodchild/TollGateNostrToolKit/releases/download/v0.0.5/RelayLink_mips"
-        BINARY_PATH="/tmp/RelayLink_mips"
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
@@ -35,7 +35,14 @@ download_and_verify_binary() {
     wget -q $BINARY_URL -O $BINARY_PATH
     CURRENT_HASH=$(sha256sum $BINARY_PATH | awk '{ print $1 }')
     
-    if [ "$CURRENT_HASH" != "$(jq -r ".$(basename $BINARY_PATH)_checksum" $CHECKSUMS_FILE)" ]; then
+    # Use a dynamic key based on architecture to fetch the correct checksum
+    CHECKSUM_KEY=$(case $ARCH in
+                     x86_64) echo "RelayLink_checksum" ;;
+                     mips) echo "RelayLink_mips_checksum" ;;
+                     *) echo "unknown_checksum" ;;  # Default case, should not occur
+                 esac)
+    
+    if [ "$CURRENT_HASH" != "$(jq -r ".$CHECKSUM_KEY" $CHECKSUMS_FILE)" ]; then
         echo "Error: Checksum verification failed."
         exit 1
     fi
@@ -47,7 +54,12 @@ download_and_verify_binary() {
 # Check if the binary is already in the tmp directory and has the correct checksum
 if [ -f "$BINARY_PATH" ]; then
     CURRENT_HASH=$(sha256sum $BINARY_PATH | awk '{ print $1 }')
-    if [ "$CURRENT_HASH" = "$(jq -r ".$(basename $BINARY_PATH)_checksum" $CHECKSUMS_FILE)" ]; then
+    CHECKSUM_KEY=$(case $ARCH in
+                     x86_64) echo "RelayLink_checksum" ;;
+                     mips) echo "RelayLink_mips_checksum" ;;
+                     *) echo "unknown_checksum" ;;  # Default case, should not occur
+                 esac)
+    if [ "$CURRENT_HASH" = "$(jq -r ".$CHECKSUM_KEY" $CHECKSUMS_FILE)" ]; then
         echo "$BINARY_PATH is up to date."
         exit 0
     else
