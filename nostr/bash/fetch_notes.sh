@@ -61,10 +61,8 @@ subscribe_to_relay() {
     RELAY=$1
     echo "Connecting to $RELAY"
     # Send subscription request and parse messages
-    echo './RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"'
+    # echo './RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"'
     ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY"
-    # ./RelayLink "$RELAY" "$SUBSCRIPTION_REQUEST" "$PUBLIC_KEY" | parse_and_print_notes &
-    # ./RelayLink "$RELAY" "NULL" "$PUBLIC_KEY" | parse_and_print_notes &
 }
 
 # Subscribe to each relay
