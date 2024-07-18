@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libwebsockets.h>
-#include <jansson.h>
 #include <signal.h>
 #include <regex.h>
 #include <openssl/ssl.h>
 #include <arpa/inet.h>
-#include <time.h>
+
 
 static struct lws_context *context;
 static volatile int force_exit = 0;
