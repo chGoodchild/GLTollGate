@@ -106,13 +106,18 @@ install_packages_if_needed() {
 echo "Installing dependencies..."
 # install_packages_if_needed libmicrohttpd libpthread jq iptables-legacy
 install_packages_if_needed jq
-# ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
 
 # Check if nodogsplash service is running
 nodogsplash_status=$(service nodogsplash status 2>&1)
 
 # Check for the presence of a known string that indicates the service is not found or inactive
 if echo "$nodogsplash_status" | grep -q "not found"; then
+    cp download/GLTollGate-0.0.1/www/cgi-bin/*.sh /www/cgi-bin/.
+    cp -r download/GLTollGate-0.0.1/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
+    cp -r download/GLTollGate-0.0.1/nostr/ /nostr/
+    cp -r download/GLTollGate-0.0.1/etc/config/* /etc/config/
+    cp download/GLTollGate-0.0.1/etc/config/nodogsplash /etc/config/nodogsplash
+
     echo "Service 'nodogsplash' not installed or not running. Installing and starting the service..."
     # Attempt to remove any existing installation first (if any)
     opkg remove nodogsplash
