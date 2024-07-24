@@ -1,3 +1,8 @@
+# Setup
+
+```
+curl -s https://raw.githubusercontent.com/chGoodchild/GLTollGate/14-cleanup-setup-file/setup_online.sh | sh
+```
 
 # Acknowledgements
 
