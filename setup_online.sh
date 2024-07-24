@@ -105,7 +105,7 @@ install_packages_if_needed() {
 # Install dependencies
 echo "Installing dependencies..."
 # install_packages_if_needed libmicrohttpd libpthread jq iptables-legacy
-install_packages_if_needed jq
+install_packages_if_needed jq curl base64 coreutils
 
 # Check if nodogsplash service is running
 nodogsplash_status=$(service nodogsplash status 2>&1)

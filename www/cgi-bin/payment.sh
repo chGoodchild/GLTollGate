@@ -133,4 +133,4 @@ case "$METHOD" in
     ;;
 esac
 
-/www/cgi-bin/./update_purchase_log_with_token.sh
+# /www/cgi-bin/./update_purchase_log_with_token.sh
