@@ -20,11 +20,39 @@ unzip -o GLTollGate.zip
 # Move to the unpacked directory (adjust the directory name if needed)
 cd GLTollGate-0.0.1
 
+is_package_installed() {
+    local package_name="$1"
+    if opkg list-installed | grep -q "^$package_name "; then
+        echo "$package_name is already installed."
+        return 0
+    else
+        echo "$package_name is not installed."
+        return 1
+    fi
+
+}
+
+install_packages_if_needed() {
+    opkg update
+    local package_name
+    for package_name in "$@"; do
+        if ! is_package_installed "$package_name"; then
+            echo "Installing $package_name..."
+            opkg install "$package_name"
+            if [ $? -eq 0 ]; then
+                echo "$package_name installed successfully."
+            else
+                echo "Failed to install $package_name."
+            fi
+        fi
+    done
+}
+
 # Install dependencies
 echo "Installing dependencies..."
-opkg update
-opkg install libmicrohttpd libpthread jq iptables-legacy
-ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
+# install_packages_if_needed libmicrohttpd libpthread jq iptables-legacy
+install_packages_if_needed jq
+# ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
 
 # Install and start nodogsplash
 if [ ! -f $MARKER_DIR/nodogsplash_installed ]; then
