@@ -4,6 +4,9 @@
 curl -s https://raw.githubusercontent.com/chGoodchild/GLTollGate/14-cleanup-setup-file/setup_online.sh | sh
 ```
 
+[Useful Commands for GLTollGate Setup](https://github.com/chGoodchild/GLTollGate/blob/14-cleanup-setup-file/useful_commands.md)
+
+
 # Acknowledgements
 
 Special thanks to the `nym` who came up with this idea, to
