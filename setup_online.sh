@@ -112,18 +112,18 @@ nodogsplash_status=$(service nodogsplash status 2>&1)
 
 # Check for the presence of a known string that indicates the service is not found or inactive
 if echo "$nodogsplash_status" | grep -q "not found"; then
-    cp /tmp/download/GLTollGate-0.0.1/www/cgi-bin/*.sh /www/cgi-bin/.
-    cp -r /tmp/download/GLTollGate-0.0.1/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
-    cp -r /tmp/download/GLTollGate-0.0.1/nostr/ /nostr/
-    cp -r /tmp/download/GLTollGate-0.0.1/etc/config/* /etc/config/
-    cp /tmp/download/GLTollGate-0.0.1/etc/config/nodogsplash /etc/config/nodogsplash
-
     echo "Service 'nodogsplash' not installed or not running. Installing and starting the service..."
     # Attempt to remove any existing installation first (if any)
     opkg remove nodogsplash
     # Install the package
     opkg install /tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk
 
+    cp /tmp/download/GLTollGate-0.0.1/www/cgi-bin/*.sh /www/cgi-bin/.
+    cp -r /tmp/download/GLTollGate-0.0.1/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
+    cp -r /tmp/download/GLTollGate-0.0.1/nostr/ /nostr/
+    cp -r /tmp/download/GLTollGate-0.0.1/etc/config/* /etc/config/
+    cp /tmp/download/GLTollGate-0.0.1/etc/config/nodogsplash /etc/config/nodogsplash
+    
     # Attempt to start the service
     if service nodogsplash start; then
         echo "Service 'nodogsplash' started successfully."
