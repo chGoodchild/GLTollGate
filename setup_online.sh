@@ -66,8 +66,26 @@ is_package_installed() {
 }
 
 install_packages_if_needed() {
-    opkg update
     local package_name
+    local update_needed=0
+    local update_performed=0
+
+    # First check which packages need to be installed
+    for package_name in "$@"; do
+        if ! is_package_installed "$package_name"; then
+            update_needed=1
+            break
+        fi
+    done
+
+    # If any package needs installation, update the package list first
+    if [ "$update_needed" -eq 1 ]; then
+        echo "Updating package list..."
+        opkg update
+        update_performed=1
+    fi
+
+    # Now install the packages that are not installed
     for package_name in "$@"; do
         if ! is_package_installed "$package_name"; then
             echo "Installing $package_name..."
@@ -79,7 +97,13 @@ install_packages_if_needed() {
             fi
         fi
     done
+
+    # If no packages needed installation and thus no update was performed
+    if [ "$update_performed" -eq 0 ] && [ "$update_needed" -eq 0 ]; then
+        echo "All packages are already installed. No update needed."
+    fi
 }
+
 
 # Install dependencies
 echo "Installing dependencies..."
