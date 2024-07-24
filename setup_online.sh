@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Marker directory
 MARKER_DIR="/tmp/markers"
@@ -15,12 +15,18 @@ curl -L -o nodogsplash_5.0.0-1_mips_24kc.ipk "https://github.com/chGoodchild/GLT
 
 # Unpack the zip file
 echo "Unpacking GLTollGate.zip..."
-unzip GLTollGate.zip
+unzip -o GLTollGate.zip
 
 # Move to the unpacked directory (adjust the directory name if needed)
 cd GLTollGate-0.0.1
 
-# Step 1: Install nodogsplash package
+# Install dependencies
+echo "Installing dependencies..."
+opkg update
+opkg install libmicrohttpd libpthread jq iptables-legacy
+ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
+
+# Install and start nodogsplash
 if [ ! -f $MARKER_DIR/nodogsplash_installed ]; then
     opkg remove nodogsplash
     opkg install /tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk
@@ -34,3 +40,4 @@ fi
 # Additional steps would be similar to those from the previous script, but adapted to local execution.
 
 echo "Setup completed."
+
