@@ -8,10 +8,43 @@ mkdir -p $MARKER_DIR
 mkdir -p /tmp/download
 cd /tmp/download
 
-# Download files
+# Function to check file presence and validate checksum, then download if necessary
+check_and_download() {
+    local url=$1
+    local destination=$2
+    local expected_checksum=$3
+
+    # Check if the file exists
+    if [ -f "$destination" ]; then
+        echo "File $destination exists. Checking checksum..."
+        # Calculate the checksum
+        local actual_checksum=$(sha256sum "$destination" | awk '{print $1}')
+
+        # Compare checksums
+        if [ "$actual_checksum" = "$expected_checksum" ]; then
+            echo "Checksum for $destination is correct."
+            return 0
+        else
+            echo "Checksum mismatch for $destination. Expected $expected_checksum, got $actual_checksum."
+            echo "Redownloading file..."
+        fi
+    else
+        echo "File $destination does not exist. Downloading..."
+    fi
+
+    # Download the file
+    curl -L -o "$destination" "$url"
+    if [ $? -eq 0 ]; then
+        echo "Downloaded file to $destination successfully."
+    else
+        echo "Failed to download file from $url"
+        return 1
+    fi
+}
+
 echo "Downloading required files..."
-curl -L -o GLTollGate.zip "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v0.0.1.zip"
-curl -L -o nodogsplash_5.0.0-1_mips_24kc.ipk "https://github.com/chGoodchild/GLTollGate/releases/download/v0.0.1/nodogsplash_5.0.0-1_mips_24kc.ipk"
+check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v0.0.1.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
+check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v0.0.1/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
 
 # Unpack the zip file
 echo "Unpacking GLTollGate.zip..."
