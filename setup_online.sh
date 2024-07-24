@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Marker directory
-MARKER_DIR="/tmp/markers"
-mkdir -p $MARKER_DIR
 
 # Ensure the download directory exists
 mkdir -p /tmp/download
@@ -111,18 +108,33 @@ echo "Installing dependencies..."
 install_packages_if_needed jq
 # ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
 
-# Install and start nodogsplash
-if [ ! -f $MARKER_DIR/nodogsplash_installed ]; then
+# Check if nodogsplash service is running
+nodogsplash_status=$(service nodogsplash status 2>&1)
+
+# Check for the presence of a known string that indicates the service is not found or inactive
+if echo "$nodogsplash_status" | grep -q "not found"; then
+    echo "Service 'nodogsplash' not installed or not running. Installing and starting the service..."
+    # Attempt to remove any existing installation first (if any)
     opkg remove nodogsplash
+    # Install the package
     opkg install /tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk
-    service nodogsplash start
-    service nodogsplash status
-    logread | grep nodogsplash
-    touch $MARKER_DIR/nodogsplash_installed
+
+    # Attempt to start the service
+    if service nodogsplash start; then
+        echo "Service 'nodogsplash' started successfully."
+        # Optionally, you can check the status again to confirm it's running
+        service nodogsplash status
+    else
+        echo "Failed to start service 'nodogsplash'."
+        return 1  # Return with error
+    fi
+else
+    echo "Service 'nodogsplash' is running."
 fi
 
-# Copy nodogsplash config and other necessary files, scripts, starting services, etc.
-# Additional steps would be similar to those from the previous script, but adapted to local execution.
+# Log any output related to nodogsplash from the system logs
+logread | grep nodogsplash
+
 
 echo "Setup completed."
 
