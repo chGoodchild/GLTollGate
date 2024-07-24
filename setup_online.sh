@@ -123,6 +123,9 @@ if echo "$nodogsplash_status" | grep -q "not found"; then
     cp -r /tmp/download/GLTollGate-0.0.1/nostr/ /nostr/
     cp -r /tmp/download/GLTollGate-0.0.1/etc/config/* /etc/config/
     cp /tmp/download/GLTollGate-0.0.1/etc/config/nodogsplash /etc/config/nodogsplash
+    cp /tmp/download/GLTollGate-0.0.1/etc/firewall.nodogsplash /etc/firewall.nodogsplash
+    chmod +x /etc/firewall.nodogsplash
+    /etc/./firewall.nodogsplash
     
     # Attempt to start the service
     if service nodogsplash start; then
