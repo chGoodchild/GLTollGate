@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Define Git tag for downloading specific versions
+GIT_TAG="0.0.2"
 
 # Ensure the download directory exists
 mkdir -p /tmp/download
@@ -40,15 +42,15 @@ check_and_download() {
 }
 
 echo "Downloading required files..."
-check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v0.0.1.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
-check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v0.0.1/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
+check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
+check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
 
 # Unpack the zip file
 echo "Unpacking GLTollGate.zip..."
 unzip -o GLTollGate.zip
 
 # Move to the unpacked directory (adjust the directory name if needed)
-cd GLTollGate-0.0.1
+cd GLTollGate-$GIT_TAG
 
 is_package_installed() {
     local package_name="$1"
@@ -104,7 +106,6 @@ install_packages_if_needed() {
 
 # Install dependencies
 echo "Installing dependencies..."
-# install_packages_if_needed libmicrohttpd libpthread jq iptables-legacy
 install_packages_if_needed jq curl coreutils-base64
 
 # Check if nodogsplash service is running
@@ -118,12 +119,12 @@ if echo "$nodogsplash_status" | grep -q "not found"; then
     # Install the package
     opkg install /tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk
 
-    cp /tmp/download/GLTollGate-0.0.1/www/cgi-bin/*.sh /www/cgi-bin/.
-    cp -r /tmp/download/GLTollGate-0.0.1/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
-    cp -r /tmp/download/GLTollGate-0.0.1/nostr/ /nostr/
-    cp -r /tmp/download/GLTollGate-0.0.1/etc/config/* /etc/config/
-    cp /tmp/download/GLTollGate-0.0.1/etc/config/nodogsplash /etc/config/nodogsplash
-    cp /tmp/download/GLTollGate-0.0.1/etc/firewall.nodogsplash /etc/firewall.nodogsplash
+    cp /tmp/download/GLTollGate-$GIT_TAG/www/cgi-bin/*.sh /www/cgi-bin/.
+    cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
+    cp -r /tmp/download/GLTollGate-$GIT_TAG/nostr/ /nostr/
+    cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/config/* /etc/config/
+    cp /tmp/download/GLTollGate-$GIT_TAG/etc/config/nodogsplash /etc/config/nodogsplash
+    cp /tmp/download/GLTollGate-$GIT_TAG/etc/firewall.nodogsplash /etc/firewall.nodogsplash
     chmod +x /etc/firewall.nodogsplash
     /etc/./firewall.nodogsplash
     
@@ -151,7 +152,7 @@ LINK_NAME="/etc/init.d/check_time_and_disconnect"
 if [ ! -L $LINK_NAME ]; then
     ln -s $SCRIPT_PATH $LINK_NAME
     chmod +x $SCRIPT_PATH
-    cp /tmp/download/GLTollGate-0.0.1/etc/rc.local /etc/rc.local
+    cp /tmp/download/GLTollGate-$GIT_TAG/etc/rc.local /etc/rc.local
     echo "Link created for $SCRIPT_PATH"
 fi
 
@@ -172,7 +173,6 @@ fi
 
 # Log any output related to nodogsplash from the system logs
 logread | grep nodogsplash
-
 
 echo "Setup completed."
 
