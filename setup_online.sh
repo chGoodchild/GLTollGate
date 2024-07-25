@@ -140,6 +140,36 @@ else
     echo "Service 'nodogsplash' is running."
 fi
 
+# Define the command to add to crontab
+CRON_JOB="* * * * * /etc/init.d/check_time_and_disconnect start"
+
+# Path to your script
+SCRIPT_PATH="/www/cgi-bin/check_time_and_disconnect.sh"
+LINK_NAME="/etc/init.d/check_time_and_disconnect"
+
+# Ensure the script is linked and executable
+if [ ! -L $LINK_NAME ]; then
+    ln -s $SCRIPT_PATH $LINK_NAME
+    chmod +x $SCRIPT_PATH
+    cp /tmp/download/GLTollGate-0.0.1/etc/rc.local /etc/rc.local
+    echo "Link created for $SCRIPT_PATH"
+fi
+
+# Enable the script to run on startup
+$LINK_NAME enable
+echo "Script enabled to run on startup."
+
+# Check if the cron job is already in the crontab
+if ! crontab -l | grep -Fq "$CRON_JOB"; then
+    # Add the cron job if it does not exist
+    (crontab -l; echo "$CRON_JOB") | crontab -
+    # Restart the cron service
+    /etc/init.d/cron restart
+    echo "Cron job added and cron restarted."
+else
+    echo "Cron job already exists. No changes made."
+fi
+
 # Log any output related to nodogsplash from the system logs
 logread | grep nodogsplash
 
