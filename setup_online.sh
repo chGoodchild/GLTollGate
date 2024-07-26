@@ -7,40 +7,66 @@ GIT_TAG="0.0.2"
 mkdir -p /tmp/download
 cd /tmp/download
 
-# Function to check file presence and validate checksum, then download if necessary
-check_and_download() {
+# Function to check checksum
+check_checksum() {
+    local file=$1
+    local expected_checksum=$2
+    echo "Checking checksum for $file..."
+    local actual_checksum=$(sha256sum "$file" | awk '{print $1}')
+
+    if [ "$actual_checksum" = "$expected_checksum" ]; then
+        echo "Checksum for $file is correct."
+        return 0
+    else
+        echo "Checksum mismatch for $file. Expected $expected_checksum, got $actual_checksum."
+        return 1
+    fi
+}
+
+# Function to download and verify a file
+download_and_verify() {
     local url=$1
     local destination=$2
     local expected_checksum=$3
 
-    # Check if the file exists
-    if [ -f "$destination" ]; then
-        echo "File $destination exists. Checking checksum..."
-        # Calculate the checksum
-        local actual_checksum=$(sha256sum "$destination" | awk '{print $1}')
-
-        # Compare checksums
-        if [ "$actual_checksum" = "$expected_checksum" ]; then
-            echo "Checksum for $destination is correct."
-            return 0
-        else
-            echo "Checksum mismatch for $destination. Expected $expected_checksum, got $actual_checksum."
-            echo "Redownloading file..."
-        fi
-    else
-        echo "File $destination does not exist. Downloading..."
-    fi
-
-    # Download the file
+    echo "Attempting to download file from $url..."
     curl -L -o "$destination" "$url"
     if [ $? -eq 0 ]; then
         echo "Downloaded file to $destination successfully."
+        # Re-check the checksum after download
+        if check_checksum "$destination" "$expected_checksum"; then
+            return 0
+        else
+            echo "Failed to verify checksum after download."
+            return 1
+        fi
     else
         echo "Failed to download file from $url"
         return 1
     fi
 }
 
+# Function to check file presence and validate checksum, then download if necessary
+check_and_download() {
+    local url=$1
+    local destination=$2
+    local expected_checksum=$3
+
+    # Check if the file exists and validate the checksum
+    if [ -f "$destination" ]; then
+        if check_checksum "$destination" "$expected_checksum"; then
+            return 0
+        else
+            echo "Redownloading file due to checksum mismatch..."
+            download_and_verify "$url" "$destination" "$expected_checksum"
+            return $?
+        fi
+    else
+        echo "File $destination does not exist. Downloading..."
+        download_and_verify "$url" "$destination" "$expected_checksum"
+        return $?
+    fi
+}
 echo "Downloading required files..."
 check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
 check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
