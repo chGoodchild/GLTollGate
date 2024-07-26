@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Define Git tag for downloading specific versions
-GIT_TAG="0.0.2"
+GIT_TAG="0.0.3"
 
 # Define checksums
 GLTOLLGATE_ZIP_CHECKSUM="15e0b9869283ee991d4e1ed50a8651143483319390bcba69916c7f727165115a"
