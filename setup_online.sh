@@ -78,7 +78,7 @@ if ! check_and_download "https://github.com/chGoodchild/GLTollGate/releases/down
 fi
 
 echo "Downloading required files..."
-check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
+check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "15e0b9869283ee991d4e1ed50a8651143483319390bcba69916c7f727165115a"
 check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
 
 # Unpack the zip file
