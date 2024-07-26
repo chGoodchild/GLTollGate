@@ -1,9 +1,54 @@
 #!/bin/sh
 
+# Define Git tag for downloading specific versions
+GIT_TAG="0.0.3"
+
+# Define checksums
+GLTOLLGATE_ZIP_CHECKSUM="828791e4af4b35ca0089ba8788e0999da5716de18f02dea0daa63b31aaec426c"
+NODOSPLASH_IPK_CHECKSUM="76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
 
 # Ensure the download directory exists
 mkdir -p /tmp/download
 cd /tmp/download
+
+# Function to check checksum
+check_checksum() {
+    local file=$1
+    local expected_checksum=$2
+    echo "Checking checksum for $file..."
+    local actual_checksum=$(sha256sum "$file" | awk '{print $1}')
+
+    if [ "$actual_checksum" = "$expected_checksum" ]; then
+        echo "Checksum for $file is correct."
+        return 0
+    else
+        echo "Checksum mismatch for $file. Expected $expected_checksum, got $actual_checksum."
+        return 1
+    fi
+}
+
+# Function to download and verify a file
+download_and_verify() {
+    local url=$1
+    local destination=$2
+    local expected_checksum=$3
+
+    echo "Attempting to download file from $url..."
+    curl -L -o "$destination" "$url"
+    if [ $? -eq 0 ]; then
+        echo "Downloaded file to $destination successfully."
+        # Re-check the checksum after download
+        if check_checksum "$destination" "$expected_checksum"; then
+            return 0
+        else
+            echo "Failed to verify checksum after download."
+            exit 1  # Exit the entire script if checksum verification fails
+        fi
+    else
+        echo "Failed to download file from $url"
+        exit 1  # Exit the entire script if download fails
+    fi
+}
 
 # Function to check file presence and validate checksum, then download if necessary
 check_and_download() {
@@ -11,44 +56,41 @@ check_and_download() {
     local destination=$2
     local expected_checksum=$3
 
-    # Check if the file exists
+    # Check if the file exists and validate the checksum
     if [ -f "$destination" ]; then
-        echo "File $destination exists. Checking checksum..."
-        # Calculate the checksum
-        local actual_checksum=$(sha256sum "$destination" | awk '{print $1}')
-
-        # Compare checksums
-        if [ "$actual_checksum" = "$expected_checksum" ]; then
-            echo "Checksum for $destination is correct."
+        if check_checksum "$destination" "$expected_checksum"; then
             return 0
         else
-            echo "Checksum mismatch for $destination. Expected $expected_checksum, got $actual_checksum."
-            echo "Redownloading file..."
+            echo "Redownloading file due to checksum mismatch..."
+            download_and_verify "$url" "$destination" "$expected_checksum"
         fi
     else
         echo "File $destination does not exist. Downloading..."
-    fi
-
-    # Download the file
-    curl -L -o "$destination" "$url"
-    if [ $? -eq 0 ]; then
-        echo "Downloaded file to $destination successfully."
-    else
-        echo "Failed to download file from $url"
-        return 1
+        download_and_verify "$url" "$destination" "$expected_checksum"
     fi
 }
 
 echo "Downloading required files..."
-check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v0.0.1.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
-check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v0.0.1/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
+if ! check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"; then
+    echo "Error downloading or verifying GLTollGate.zip. Exiting..."
+    exit 1
+fi
+
+if ! check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "$NODOSPLASH_IPK_CHECKSUM"; then
+    echo "Error downloading or verifying nodogsplash_5.0.0-1_mips_24kc.ipk. Exiting..."
+    exit 1
+fi
+
+echo "Downloading required files..."
+check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"
+check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "$NODOSPLASH_IPK_CHECKSUM"
 
 # Unpack the zip file
 echo "Unpacking GLTollGate.zip..."
 unzip -o GLTollGate.zip
 
 # Move to the unpacked directory (adjust the directory name if needed)
-cd GLTollGate-0.0.1
+cd GLTollGate-$GIT_TAG
 
 is_package_installed() {
     local package_name="$1"
@@ -104,7 +146,6 @@ install_packages_if_needed() {
 
 # Install dependencies
 echo "Installing dependencies..."
-# install_packages_if_needed libmicrohttpd libpthread jq iptables-legacy
 install_packages_if_needed jq curl coreutils-base64
 
 # Check if nodogsplash service is running
@@ -118,11 +159,14 @@ if echo "$nodogsplash_status" | grep -q "not found"; then
     # Install the package
     opkg install /tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk
 
-    cp /tmp/download/GLTollGate-0.0.1/www/cgi-bin/*.sh /www/cgi-bin/.
-    cp -r /tmp/download/GLTollGate-0.0.1/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
-    cp -r /tmp/download/GLTollGate-0.0.1/nostr/ /nostr/
-    cp -r /tmp/download/GLTollGate-0.0.1/etc/config/* /etc/config/
-    cp /tmp/download/GLTollGate-0.0.1/etc/config/nodogsplash /etc/config/nodogsplash
+    cp /tmp/download/GLTollGate-$GIT_TAG/www/cgi-bin/*.sh /www/cgi-bin/.
+    cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
+    cp -r /tmp/download/GLTollGate-$GIT_TAG/nostr/ /nostr/
+    # cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/config/* /etc/config/
+    cp /tmp/download/GLTollGate-$GIT_TAG/etc/config/nodogsplash /etc/config/nodogsplash
+    cp /tmp/download/GLTollGate-$GIT_TAG/etc/firewall.nodogsplash /etc/firewall.nodogsplash
+    chmod +x /etc/firewall.nodogsplash
+    /etc/./firewall.nodogsplash
     
     # Attempt to start the service
     if service nodogsplash start; then
@@ -137,9 +181,38 @@ else
     echo "Service 'nodogsplash' is running."
 fi
 
+# Define the command to add to crontab
+CRON_JOB="* * * * * /etc/init.d/check_time_and_disconnect start"
+
+# Path to your script
+SCRIPT_PATH="/www/cgi-bin/check_time_and_disconnect.sh"
+LINK_NAME="/etc/init.d/check_time_and_disconnect"
+
+# Ensure the script is linked and executable
+if [ ! -L $LINK_NAME ]; then
+    ln -s $SCRIPT_PATH $LINK_NAME
+    chmod +x $SCRIPT_PATH
+    cp /tmp/download/GLTollGate-$GIT_TAG/etc/rc.local /etc/rc.local
+    echo "Link created for $SCRIPT_PATH"
+fi
+
+# Enable the script to run on startup
+$LINK_NAME enable > /dev/null 2>&1
+echo "Script enabled to run on startup, output suppressed."
+
+# Check if the cron job is already in the crontab
+if ! crontab -l | grep -Fq "$CRON_JOB"; then
+    # Add the cron job if it does not exist
+    (crontab -l; echo "$CRON_JOB") | crontab -
+    # Restart the cron service
+    /etc/init.d/cron restart
+    echo "Cron job added and cron restarted."
+else
+    echo "Cron job already exists. No changes made."
+fi
+
 # Log any output related to nodogsplash from the system logs
 logread | grep nodogsplash
-
 
 echo "Setup completed."
 
