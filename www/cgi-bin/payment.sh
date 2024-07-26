@@ -3,8 +3,8 @@
 ##!/bin/sh -e
 # set -x
 
-LOGFILE="/var/log/nodogsplash_data_purchases.json"
-USAGE_LOGFILE="/var/log/nodogsplash_data_usage.json"
+LOGFILE="/tmp/log/nodogsplash_data_purchases.json"
+USAGE_LOGFILE="/tmp/log/nodogsplash_data_usage.json"
 
 METHOD="$1"
 MAC="$2"
