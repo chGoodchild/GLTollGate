@@ -197,8 +197,8 @@ if [ ! -L $LINK_NAME ]; then
 fi
 
 # Enable the script to run on startup
-$LINK_NAME enable
-echo "Script enabled to run on startup."
+$LINK_NAME enable > /dev/null 2>&1
+echo "Script enabled to run on startup, output suppressed."
 
 # Check if the cron job is already in the crontab
 if ! crontab -l | grep -Fq "$CRON_JOB"; then
