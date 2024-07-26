@@ -161,8 +161,8 @@ if echo "$nodogsplash_status" | grep -q "not found"; then
 
     cp /tmp/download/GLTollGate-$GIT_TAG/www/cgi-bin/*.sh /www/cgi-bin/.
     cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
-    # cp -r /tmp/download/GLTollGate-$GIT_TAG/nostr/ /nostr/
-    cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/config/* /etc/config/
+    cp -r /tmp/download/GLTollGate-$GIT_TAG/nostr/ /nostr/
+    # cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/config/* /etc/config/
     cp /tmp/download/GLTollGate-$GIT_TAG/etc/config/nodogsplash /etc/config/nodogsplash
     cp /tmp/download/GLTollGate-$GIT_TAG/etc/firewall.nodogsplash /etc/firewall.nodogsplash
     chmod +x /etc/firewall.nodogsplash
