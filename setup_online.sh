@@ -38,11 +38,11 @@ download_and_verify() {
             return 0
         else
             echo "Failed to verify checksum after download."
-            return 1
+            exit 1  # Exit the entire script if checksum verification fails
         fi
     else
         echo "Failed to download file from $url"
-        return 1
+        exit 1  # Exit the entire script if download fails
     fi
 }
 
@@ -59,14 +59,24 @@ check_and_download() {
         else
             echo "Redownloading file due to checksum mismatch..."
             download_and_verify "$url" "$destination" "$expected_checksum"
-            return $?
         fi
     else
         echo "File $destination does not exist. Downloading..."
         download_and_verify "$url" "$destination" "$expected_checksum"
-        return $?
     fi
 }
+
+echo "Downloading required files..."
+if ! check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"; then
+    echo "Error downloading or verifying GLTollGate.zip. Exiting..."
+    exit 1
+fi
+
+if ! check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"; then
+    echo "Error downloading or verifying nodogsplash_5.0.0-1_mips_24kc.ipk. Exiting..."
+    exit 1
+fi
+
 echo "Downloading required files..."
 check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "a42191ec74e4bbcba6cd6e49d3f472176781d31606c4adea1fe46b77f5ce879a"
 check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
