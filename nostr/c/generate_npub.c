@@ -46,7 +46,7 @@ int generate_ecdsa_keypair() {
         goto end;
     }
     
-    if (wally_bip39_mnemonic_from_bytes(NULL, entropy, sizeof(entropy), &mnemonic) != WALLY_OK) {
+    if (bip39_mnemonic_from_bytes(NULL, entropy, sizeof(entropy), &mnemonic) != WALLY_OK) {
         fprintf(stderr, "Failed to generate mnemonic.\n");
         goto end;
     }

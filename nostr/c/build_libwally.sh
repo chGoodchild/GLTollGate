@@ -72,11 +72,12 @@ fi
 # Initialize and update submodules recursively
 git submodule update --init --recursive
 
+make clean
 # Prepare the build system
 ./tools/autogen.sh
 
 # Configure the build
-./configure
+./configure --enable-elements --enable-builtin-memset --enable-debug --enable-tests
 
 # Compile and install
 make
