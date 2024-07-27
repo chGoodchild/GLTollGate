@@ -35,7 +35,7 @@ install_if_missing() {
 }
 
 # Use the function to install required packages
-install_if_missing git libtool autoconf python3 python-is-python3 swig
+install_if_missing git libtool autoconf python3 python-is-python3 swig build-essential libssl-dev
 
 
 # Check for Python 3 and install if not present
