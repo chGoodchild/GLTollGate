@@ -1,3 +1,6 @@
+#include <wally_core.h>
+#include <wally_bip39.h>
+#include <wally_address.h>
 #include "/home/pachai/libbtc/src/trezor-crypto/bip39.h"
 #include <openssl/evp.h>
 #include <openssl/pem.h>
