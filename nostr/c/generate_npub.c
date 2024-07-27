@@ -1,5 +1,6 @@
-#include <btc/bip39.h>
-#include <wally_core.h>  // Adjust include based on actual Bech32 library used
+// #include "~/libbtc/src/trezor-crypto/bip39.h"
+#include "/home/pachai/libbtc/src/trezor-crypto/bip39.h"
+// #include <wally_core.h>  // Adjust include based on actual Bech32 library used
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rand.h>

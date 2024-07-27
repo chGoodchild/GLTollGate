@@ -28,7 +28,7 @@ cd ~/
 git clone https://github.com/libbtc/libbtc.git
 cd libbtc
 ./autogen.sh
-./configure
+./configure --enable-static --disable-shared
 make
 sudo make install
 
@@ -50,5 +50,8 @@ if ! grep -qxF "/usr/local/lib" /etc/ld.so.conf.d/local.conf; then
 else
     echo "The path /usr/local/lib is already included."
 fi
+
+sudo chown -R $(whoami) /usr/local/include /usr/local/lib
+sudo ldconfig
 
 echo "libbtc headers and libraries are correctly installed."
