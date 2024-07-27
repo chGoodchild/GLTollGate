@@ -3,34 +3,29 @@
 #include <wally_address.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <openssl/pem.h>
 #include <openssl/ec.h> // Necessary for EC functions
 #include <openssl/obj_mac.h> // For NID_secp256k1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void output_json(const char* npub, const char* nsec, const char* mnemonic);
+void output_json(const char* filename, const char* address) {
+    FILE *fp = fopen(filename, "w");
+    if (fp) {
+        fprintf(fp, "{\"Bech32\": \"%s\"}\n", address);
+        fclose(fp);
+    } else {
+        fprintf(stderr, "Failed to write to JSON file.\n");
+    }
+}
 
-int generate_ecdsa_keypair() {
-    wally_init(0);
-
+int generate_and_save_keys() {
     EVP_PKEY *pkey = NULL;
     EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
-    if (!pctx) {
-        fprintf(stderr, "Failed to create EVP_PKEY_CTX.\n");
-        return 1;
-    }
-
-    if (EVP_PKEY_keygen_init(pctx) != 1) {
+    if (!pctx || EVP_PKEY_keygen_init(pctx) != 1 || EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_secp256k1) != 1) {
         fprintf(stderr, "Failed to initialize EC key generation.\n");
-        EVP_PKEY_CTX_free(pctx);
-        return 1;
-    }
-
-    // Setting the curve for key generation
-    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_secp256k1) != 1) {
-        fprintf(stderr, "Failed to set EC curve.\n");
-        EVP_PKEY_CTX_free(pctx);
+        if (pctx) EVP_PKEY_CTX_free(pctx);
         return 1;
     }
 
@@ -40,61 +35,80 @@ int generate_ecdsa_keypair() {
         return 1;
     }
 
-    // Extracting the public key bytes directly from EVP_PKEY
-    size_t pubkey_len = 0;
-    EVP_PKEY_get_raw_public_key(pkey, NULL, &pubkey_len);  // First call to determine the buffer length
-    unsigned char *pubkey = malloc(pubkey_len);
-    if (!EVP_PKEY_get_raw_public_key(pkey, pubkey, &pubkey_len)) {
-        fprintf(stderr, "Failed to get raw public key.\n");
-        free(pubkey);
+    FILE *fp_pub = fopen("public_key.pem", "w");
+    FILE *fp_priv = fopen("private_key.pem", "w");
+
+    if (!fp_pub || !fp_priv || !PEM_write_PUBKEY(fp_pub, pkey) || !PEM_write_PrivateKey(fp_priv, pkey, NULL, NULL, 0, NULL, NULL)) {
+        fprintf(stderr, "Failed to write keys to PEM files.\n");
+        if (fp_pub) fclose(fp_pub);
+        if (fp_priv) fclose(fp_priv);
         EVP_PKEY_free(pkey);
         EVP_PKEY_CTX_free(pctx);
+        return 1;
+    }
+
+    fclose(fp_pub);
+    fclose(fp_priv);
+    EVP_PKEY_free(pkey);
+    EVP_PKEY_CTX_free(pctx);
+    return 0;
+}
+
+int read_pubkey_and_convert_to_bech32(const char *pubkey_filename, const char *json_filename) {
+    FILE *fp = fopen(pubkey_filename, "r");
+    if (!fp) {
+        fprintf(stderr, "Failed to open public key PEM file.\n");
+        return 1;
+    }
+
+    EVP_PKEY *pkey = PEM_read_PUBKEY(fp, NULL, NULL, NULL);
+    fclose(fp);
+
+    if (!pkey) {
+        fprintf(stderr, "Failed to read public key from PEM file.\n");
+        return 1;
+    }
+
+    unsigned char *pubkey_raw;
+    size_t pubkey_raw_len;
+    EVP_PKEY_get_raw_public_key(pkey, NULL, &pubkey_raw_len);
+    pubkey_raw = malloc(pubkey_raw_len);
+    if (!EVP_PKEY_get_raw_public_key(pkey, pubkey_raw, &pubkey_raw_len)) {
+        fprintf(stderr, "Failed to extract raw public key.\n");
+        free(pubkey_raw);
+        EVP_PKEY_free(pkey);
         return 1;
     }
 
     char *address = NULL;
-    if (wally_addr_segwit_from_bytes(pubkey, pubkey_len, "bc", 0, &address) != WALLY_OK) {
+    if (wally_addr_segwit_from_bytes(pubkey_raw, pubkey_raw_len, "bc", 0, &address) != WALLY_OK) {
         fprintf(stderr, "Failed to convert public key to Bech32 address.\n");
-        free(pubkey);
+        free(pubkey_raw);
         EVP_PKEY_free(pkey);
-        EVP_PKEY_CTX_free(pctx);
         return 1;
     }
 
-    unsigned char entropy[32];
-    char *mnemonic = NULL;
-    if (RAND_bytes(entropy, sizeof(entropy)) != 1 || bip39_mnemonic_from_bytes(NULL, entropy, sizeof(entropy), &mnemonic) != WALLY_OK) {
-        fprintf(stderr, "Failed to generate mnemonic.\n");
-        if (mnemonic) wally_free_string(mnemonic);
-        free(pubkey);
-        EVP_PKEY_free(pkey);
-        EVP_PKEY_CTX_free(pctx);
-        return 1;
-    }
-
-    output_json(address, "Private key not exposed", mnemonic);
+    output_json(json_filename, address);
 
     free(address);
-    wally_free_string(mnemonic);
-    free(pubkey);
+    free(pubkey_raw);
     EVP_PKEY_free(pkey);
-    EVP_PKEY_CTX_free(pctx);
-    wally_cleanup(0);
     return 0;
 }
 
 int main() {
     OpenSSL_add_all_algorithms();
-    int result = generate_ecdsa_keypair();
-    EVP_cleanup();
-    return result;
-}
+    if (generate_and_save_keys() != 0) {
+        fprintf(stderr, "Key generation and saving failed.\n");
+        return 1;
+    }
 
-void output_json(const char* npub, const char* nsec, const char* mnemonic) {
-    printf("{\n");
-    printf("  \"npub\": \"%s\",\n", npub);
-    printf("  \"nsec\": \"%s\",\n", nsec);
-    printf("  \"bip39_nsec\": \"%s\"\n", mnemonic);
-    printf("}\n");
+    if (read_pubkey_and_convert_to_bech32("public_key.pem", "output.json") != 0) {
+        fprintf(stderr, "Failed to process public key.\n");
+        return 1;
+    }
+
+    EVP_cleanup();
+    return 0;
 }
 
