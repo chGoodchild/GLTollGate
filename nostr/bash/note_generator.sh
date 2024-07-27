@@ -51,7 +51,6 @@ verify_checksum() {
         echo "Actual: $actual_hash"
         exit 1
     fi
-    echo "Checksum verification passed for $path"
 }
 
 # Determine the architecture of the current system
