@@ -3,8 +3,8 @@
 #include <wally_address.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
-#include <openssl/ec.h>
-#include <openssl/obj_mac.h>
+#include <openssl/ec.h> // Necessary for EC functions
+#include <openssl/obj_mac.h> // For NID_secp256k1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,8 +21,15 @@ int generate_ecdsa_keypair() {
         return 1;
     }
 
-    if (EVP_PKEY_keygen_init(pctx) != 1 || EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_secp256k1) != 1) {
+    if (EVP_PKEY_keygen_init(pctx) != 1) {
         fprintf(stderr, "Failed to initialize EC key generation.\n");
+        EVP_PKEY_CTX_free(pctx);
+        return 1;
+    }
+
+    // Setting the curve for key generation
+    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_secp256k1) != 1) {
+        fprintf(stderr, "Failed to set EC curve.\n");
         EVP_PKEY_CTX_free(pctx);
         return 1;
     }
@@ -33,9 +40,9 @@ int generate_ecdsa_keypair() {
         return 1;
     }
 
-    // Use the EVP_PKEY directly to extract the public key bytes
+    // Extracting the public key bytes directly from EVP_PKEY
     size_t pubkey_len = 0;
-    EVP_PKEY_get_raw_public_key(pkey, NULL, &pubkey_len); // Get length first
+    EVP_PKEY_get_raw_public_key(pkey, NULL, &pubkey_len);  // First call to determine the buffer length
     unsigned char *pubkey = malloc(pubkey_len);
     if (!EVP_PKEY_get_raw_public_key(pkey, pubkey, &pubkey_len)) {
         fprintf(stderr, "Failed to get raw public key.\n");
