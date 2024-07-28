@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/bn.h>
+#include <stdbool.h>
 
 
 void output_json(const char* filename, const char* address) {
@@ -98,26 +99,36 @@ int read_pubkey_and_convert_to_bech32(const char *pubkey_filename, const char *j
     return 0;
 }
 
-// Function to extract and print the raw public key using EVP_PKEY APIs
-int print_raw_public_key(const char *pubkey_filename) {
-    FILE *fp = fopen(pubkey_filename, "r");
+// Function to extract and print the raw key data
+// key_filename: Path to the key file (either public or private)
+// is_private: Flag to determine whether the key is private (1 for private, 0 for public)
+int print_raw_key(const char *key_filename, int is_private) {
+    FILE *fp = fopen(key_filename, "r");
     if (!fp) {
-        fprintf(stderr, "Failed to open public key PEM file.\n");
+        fprintf(stderr, "Failed to open key PEM file.\n");
         return 1;
     }
 
-    EVP_PKEY *pkey = PEM_read_PUBKEY(fp, NULL, NULL, NULL);
+    EVP_PKEY *pkey = NULL;
+    if (is_private) {
+        pkey = PEM_read_PrivateKey(fp, NULL, NULL, NULL);
+    } else {
+        pkey = PEM_read_PUBKEY(fp, NULL, NULL, NULL);
+    }
     fclose(fp);
 
     if (!pkey) {
-        fprintf(stderr, "Failed to read public key from PEM file.\n");
+        fprintf(stderr, "Failed to read key from PEM file.\n");
         return 1;
     }
 
-    // Use EVP_PKEY APIs to extract the public key data
+    // Determine parameter name based on key type
+    const char *param_name = is_private ? "priv" : "pub";
+
     size_t keylen;
-    if (!EVP_PKEY_get_octet_string_param(pkey, "pub", NULL, 0, &keylen)) {
-        fprintf(stderr, "Failed to get public key size.\n");
+    // Get the key size
+    if (!EVP_PKEY_get_octet_string_param(pkey, param_name, NULL, 0, &keylen)) {
+        fprintf(stderr, "Failed to get key size.\n");
         EVP_PKEY_free(pkey);
         return 1;
     }
@@ -129,14 +140,15 @@ int print_raw_public_key(const char *pubkey_filename) {
         return 1;
     }
 
-    if (!EVP_PKEY_get_octet_string_param(pkey, "pub", buf, keylen, &keylen)) {
-        fprintf(stderr, "Failed to get public key data.\n");
+    // Extract the key data
+    if (!EVP_PKEY_get_octet_string_param(pkey, param_name, buf, keylen, &keylen)) {
+        fprintf(stderr, "Failed to get key data.\n");
         free(buf);
         EVP_PKEY_free(pkey);
         return 1;
     }
 
-    // Print the raw public key in hexadecimal format
+    // Print the raw key in hexadecimal format
     for (size_t i = 0; i < keylen; ++i) {
         printf("%02x", buf[i]);
     }
@@ -148,6 +160,7 @@ int print_raw_public_key(const char *pubkey_filename) {
 }
 
 
+
 int main() {
     OpenSSL_add_all_algorithms();
     if (generate_and_save_keys() != 0) {
@@ -155,7 +168,8 @@ int main() {
         return 1;
     }
 
-    print_raw_public_key("public_key.pem");
+    print_raw_key("public_key.pem", 0);
+    print_raw_key("private_key.pem", 0);
 
     /**
     if (read_pubkey_and_convert_to_bech32("public_key.pem", "output.json") != 0) {
