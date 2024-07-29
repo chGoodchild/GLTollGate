@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <openssl/encoder.h>
 #include <openssl/err.h>  // For ERR_print_errors_fp
+#include <openssl/core_names.h>
 
 
 void output_json(const char* filename, const char* address) {
@@ -59,8 +60,27 @@ int generate_and_save_keys() {
     return 0;
 }
 
+
+void check_curve(EVP_PKEY *pkey) {
+    if (EVP_PKEY_base_id(pkey) != EVP_PKEY_EC) {
+        fprintf(stderr, "Not an EC key\n");
+    } else {
+        int nid;
+        OSSL_PARAM params[] = {
+            OSSL_PARAM_construct_int(OSSL_PKEY_PARAM_GROUP_NAME, &nid),
+            OSSL_PARAM_construct_end()  // Marks the end of the array
+        };
+
+        if (!EVP_PKEY_get_params(pkey, params)) {
+            fprintf(stderr, "Unable to get curve name\n");
+        } else if (nid != NID_secp256k1) {
+            fprintf(stderr, "Unexpected curve: %d\n", nid);
+        }
+    }
+}
 unsigned char* convert_der_to_bech32(const unsigned char* der, size_t der_len, char** bech32_address) {
     EVP_PKEY* pkey = NULL;
+    // unsigned char* p = (unsigned char*)der;  // Remove const to allow modification
     const unsigned char* p = der;
 
     printf("Attempting to decode DER data of length: %zu\n", der_len);
@@ -69,11 +89,14 @@ unsigned char* convert_der_to_bech32(const unsigned char* der, size_t der_len, c
     }
     printf("\n");
 
+
     if (d2i_PublicKey(EVP_PKEY_EC, &pkey, &p, der_len) == NULL) {
-        fprintf(stderr, "Failed to decode public key from DER.\n");
         ERR_print_errors_fp(stderr);
+        fprintf(stderr, "Failed to decode public key from DER.\n");
         return NULL;
     }
+
+    check_curve(pkey);
 
     OSSL_ENCODER_CTX* ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "RAW", NULL, NULL);
     if (!ctx) {
