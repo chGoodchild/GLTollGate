@@ -62,58 +62,66 @@ int generate_and_save_keys() {
 unsigned char* convert_der_to_bech32(const unsigned char* der, size_t der_len, char** bech32_address) {
     EVP_PKEY* pkey = NULL;
     const unsigned char* p = der;
+
+    printf("Attempting to decode DER data of length: %zu\n", der_len);
+    for (int i = 0; i < 10 && i < der_len; i++) {
+        printf("%02X ", der[i]);
+    }
+    printf("\n");
+
     if (d2i_PublicKey(EVP_PKEY_EC, &pkey, &p, der_len) == NULL) {
         fprintf(stderr, "Failed to decode public key from DER.\n");
+        ERR_print_errors_fp(stderr);
         return NULL;
     }
 
-    // Use OSSL_ENCODER to handle key conversion
-    OSSL_ENCODER_CTX* ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "TEXT", "legacy", NULL);
-    if (ctx == NULL) {
-        fprintf(stderr, "Encoder context creation failed.\n");
+    OSSL_ENCODER_CTX* ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "RAW", NULL, NULL);
+    if (!ctx) {
+        fprintf(stderr, "Failed to create encoder context.\n");
         EVP_PKEY_free(pkey);
         return NULL;
     }
 
     BIO* bio = BIO_new(BIO_s_mem());
-    if (bio == NULL) {
+    if (!bio) {
         fprintf(stderr, "Failed to create BIO.\n");
         OSSL_ENCODER_CTX_free(ctx);
         EVP_PKEY_free(pkey);
         return NULL;
     }
 
-    if (OSSL_ENCODER_to_bio(ctx, bio) <= 0) {
+    if (!OSSL_ENCODER_to_bio(ctx, bio)) {
         fprintf(stderr, "Failed to encode public key.\n");
-        BIO_free(bio);
+        BIO_free_all(bio);
         OSSL_ENCODER_CTX_free(ctx);
         EVP_PKEY_free(pkey);
         return NULL;
     }
 
-    BUF_MEM* bptr = NULL;
+    BUF_MEM* bptr;
     BIO_get_mem_ptr(bio, &bptr);
-    char* raw_pubkey = malloc(bptr->length);
-    memcpy(raw_pubkey, bptr->data, bptr->length);
 
-    // Assume wally_address function is available to convert raw pubkey to Bech32
-    if (wally_addr_segwit_from_bytes((unsigned char*)raw_pubkey, bptr->length, "bc", 0, bech32_address) != WALLY_OK) {
+    int result = wally_addr_segwit_from_bytes((unsigned char*)bptr->data, bptr->length, "bc", 0, bech32_address);
+    if (result != WALLY_OK) {
+        fprintf(stderr, "Failed to convert public key to Bech32 address. Error code: %d\n", result);
+    } else {
+        printf("Generated Bech32 address: %s\n", *bech32_address);
+    }
+
+    // Assume function `wally_addr_segwit_from_bytes` exists for converting raw public key to Bech32
+    if (result != WALLY_OK) {
         fprintf(stderr, "Failed to convert public key to Bech32 address.\n");
-        free(raw_pubkey);
-        BIO_free(bio);
+        BIO_free_all(bio);
         OSSL_ENCODER_CTX_free(ctx);
         EVP_PKEY_free(pkey);
         return NULL;
     }
 
-    free(raw_pubkey);
-    BIO_free(bio);
+    BIO_free_all(bio);
     OSSL_ENCODER_CTX_free(ctx);
     EVP_PKEY_free(pkey);
-
-    return 0; // Successfully converted
+    return 0;
 }
-
 
 // Function to extract raw public key data
 unsigned char* get_raw_public_key(EVP_PKEY *pkey, size_t *out_len) {
@@ -130,6 +138,13 @@ unsigned char* get_raw_public_key(EVP_PKEY *pkey, size_t *out_len) {
         ERR_print_errors_fp(stderr);
         OSSL_ENCODER_CTX_free(ctx);
         return NULL;
+    } else {
+        printf("DER encoded public key length: %zu\n", *out_len);
+        // Print a few bytes of the DER encoded key to verify
+        for (int i = 0; i < 10 && i < *out_len; i++) {
+            printf("%02X ", buf[i]);
+        }
+        printf("\n");
     }
 
     OSSL_ENCODER_CTX_free(ctx);
