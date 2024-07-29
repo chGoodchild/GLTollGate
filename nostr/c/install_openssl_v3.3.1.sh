@@ -7,27 +7,26 @@ OPENSSL_VERSION="openssl-3.3.1"
 DOWNLOAD_DIR="$HOME"
 INSTALLATION_DIR="/usr/local/ssl"
 
-# Download OpenSSL
-echo "Downloading OpenSSL $OPENSSL_VERSION..."
-cd $DOWNLOAD_DIR
-# wget https://github.com/openssl/openssl/releases/download/$OPENSSL_VERSION/$OPENSSL_VERSION.tar.gz
-# wget https://github.com/openssl/openssl/releases/download/$OPENSSL_VERSION/$OPENSSL_VERSION.tar.gz.sha256
+# Define file paths
+OPENSSL_TAR="$DOWNLOAD_DIR/$OPENSSL_VERSION.tar.gz"
+OPENSSL_SHA="$DOWNLOAD_DIR/$OPENSSL_VERSION.tar.gz.sha256"
 
-# Prepare for checksum verification
-echo "Preparing checksum..."
-CHECKSUM=$(cat $OPENSSL_VERSION.tar.gz.sha256 | awk '{print $1}')  # Extract the checksum
-echo "$CHECKSUM  $OPENSSL_VERSION.tar.gz" > checksum.sha256         # Create a new checksum file
+# Download OpenSSL tarball and checksum file if they don't exist or if checksum doesn't match
+if [ ! -f "$OPENSSL_TAR" ] || ! echo "$(cat $OPENSSL_SHA)  $OPENSSL_TAR" | sha256sum -c --status; then
+    echo "Downloading OpenSSL $OPENSSL_VERSION..."
+    wget -O "$OPENSSL_TAR" "https://github.com/openssl/openssl/releases/download/$OPENSSL_VERSION/$OPENSSL_VERSION.tar.gz"
+    wget -O "$OPENSSL_SHA" "https://github.com/openssl/openssl/releases/download/$OPENSSL_VERSION/$OPENSSL_VERSION.tar.gz.sha256"
 
-# Verify the checksum
-echo "Verifying the checksum..."
-sha256sum -c checksum.sha256
-
-if [ $? -eq 0 ]; then
-    echo "Checksum verification successful."
+    # Verify the checksum
+    echo "Verifying the checksum..."
+    if ! echo "$(cat $OPENSSL_SHA)  $OPENSSL_TAR" | sha256sum -c --status; then
+        echo "Checksum verification failed."
+        exit 1
+    fi
 else
-    echo "Checksum verification failed."
-    exit 1
+    echo "OpenSSL $OPENSSL_VERSION already downloaded and verified."
 fi
+
 
 # Remove existing OpenSSL installation
 echo "Removing existing OpenSSL installation..."
