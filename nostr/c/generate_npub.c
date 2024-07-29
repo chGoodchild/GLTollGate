@@ -105,7 +105,7 @@ int read_pubkey_and_convert_to_bech32(const char *pubkey_filename, const char *j
 // Function to extract raw public key data
 unsigned char* get_raw_public_key(EVP_PKEY *pkey, size_t *out_len) {
     unsigned char *buf = NULL;
-    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "RAW", NULL, NULL);
+    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "DER", NULL, NULL);
     if (!ctx) {
         fprintf(stderr, "Failed to create encoder context for public key.\n");
         ERR_print_errors_fp(stderr);
@@ -126,7 +126,7 @@ unsigned char* get_raw_public_key(EVP_PKEY *pkey, size_t *out_len) {
 // Function to print raw private key data
 unsigned char* get_raw_private_key(EVP_PKEY *pkey, size_t *out_len) {
     unsigned char *buf = NULL;
-    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PRIVATE_KEY, "RAW", NULL, NULL);
+    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PRIVATE_KEY, "DER", NULL, NULL);
     if (!ctx) {
         fprintf(stderr, "Failed to create encoder context for private key.\n");
         ERR_print_errors_fp(stderr);
