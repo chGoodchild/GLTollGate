@@ -12,6 +12,7 @@
 #include <openssl/bn.h>
 #include <stdbool.h>
 #include <openssl/encoder.h>
+#include <openssl/err.h>  // For ERR_print_errors_fp
 
 
 void output_json(const char* filename, const char* address) {
@@ -103,19 +104,19 @@ int read_pubkey_and_convert_to_bech32(const char *pubkey_filename, const char *j
 
 // Function to print raw public key data using EVP_PKEY
 int print_raw_public_key(EVP_PKEY *pkey) {
-    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "RAW", "SubjectPublicKeyInfo", NULL);
+    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "PEM", "SubjectPublicKeyInfo", NULL);
     if (!ctx) {
         fprintf(stderr, "Failed to create encoder context.\n");
+        ERR_print_errors_fp(stderr);  // Print detailed OpenSSL errors
         return 1;
     }
 
     unsigned char *buf = NULL;
     size_t buf_len = 0;
-    OSSL_ENCODER_to_data(ctx, &buf, &buf_len);
-
-    if (!buf) {
+    if (!OSSL_ENCODER_to_data(ctx, &buf, &buf_len)) {
         fprintf(stderr, "Failed to encode public key.\n");
         OSSL_ENCODER_CTX_free(ctx);
+        ERR_print_errors_fp(stderr);  // Print detailed OpenSSL errors
         return 1;
     }
 
