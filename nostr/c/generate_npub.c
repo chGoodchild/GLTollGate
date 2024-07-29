@@ -11,6 +11,7 @@
 #include <string.h>
 #include <openssl/bn.h>
 #include <stdbool.h>
+#include <openssl/encoder.h>
 
 
 void output_json(const char* filename, const char* address) {
@@ -99,9 +100,67 @@ int read_pubkey_and_convert_to_bech32(const char *pubkey_filename, const char *j
     return 0;
 }
 
-// Function to extract and print the raw key data
-// key_filename: Path to the key file (either public or private)
-// is_private: Flag to determine whether the key is private (1 for private, 0 for public)
+
+// Function to print raw public key data using EVP_PKEY
+int print_raw_public_key(EVP_PKEY *pkey) {
+    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "RAW", "SubjectPublicKeyInfo", NULL);
+    if (!ctx) {
+        fprintf(stderr, "Failed to create encoder context.\n");
+        return 1;
+    }
+
+    unsigned char *buf = NULL;
+    size_t buf_len = 0;
+    OSSL_ENCODER_to_data(ctx, &buf, &buf_len);
+
+    if (!buf) {
+        fprintf(stderr, "Failed to encode public key.\n");
+        OSSL_ENCODER_CTX_free(ctx);
+        return 1;
+    }
+
+    printf("Public Key: ");
+    for (size_t i = 0; i < buf_len; i++) {
+        printf("%02x", buf[i]);
+    }
+    printf("\n");
+
+    OPENSSL_free(buf);
+    OSSL_ENCODER_CTX_free(ctx);
+    return 0;
+}
+
+// Function to print raw private key data
+int print_raw_private_key(EVP_PKEY *pkey) {
+    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PRIVATE_KEY, "RAW", "PrivateKeyInfo", NULL);
+    if (!ctx) {
+        fprintf(stderr, "Failed to create encoder context.\n");
+        return 1;
+    }
+
+    unsigned char *buf = NULL;
+    size_t buf_len = 0;
+    OSSL_ENCODER_to_data(ctx, &buf, &buf_len);
+
+    if (!buf) {
+        fprintf(stderr, "Failed to encode private key.\n");
+        OSSL_ENCODER_CTX_free(ctx);
+        return 1;
+    }
+
+    printf("Private Key: ");
+    for (size_t i = 0; i < buf_len; i++) {
+        printf("%02x", buf[i]);
+    }
+    printf("\n");
+
+    OPENSSL_free(buf);
+    OSSL_ENCODER_CTX_free(ctx);
+    return 0;
+}
+
+
+// Modified function to handle both public and private keys
 int print_raw_key(const char *key_filename, int is_private) {
     FILE *fp = fopen(key_filename, "r");
     if (!fp) {
@@ -122,44 +181,16 @@ int print_raw_key(const char *key_filename, int is_private) {
         return 1;
     }
 
-    // Determine parameter name based on key type
-    const char *param_name = is_private ? "priv" : "pub";
-
-    size_t keylen;
-    // Get the key size
-    if (!EVP_PKEY_get_octet_string_param(pkey, param_name, NULL, 0, &keylen)) {
-        fprintf(stderr, "Failed to get key size.\n");
-        EVP_PKEY_free(pkey);
-        return 1;
+    int result = 0;
+    if (is_private) {
+        result = print_raw_private_key(pkey);
+    } else {
+        result = print_raw_public_key(pkey);
     }
 
-    unsigned char *buf = malloc(keylen);
-    if (!buf) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        EVP_PKEY_free(pkey);
-        return 1;
-    }
-
-    // Extract the key data
-    if (!EVP_PKEY_get_octet_string_param(pkey, param_name, buf, keylen, &keylen)) {
-        fprintf(stderr, "Failed to get key data.\n");
-        free(buf);
-        EVP_PKEY_free(pkey);
-        return 1;
-    }
-
-    // Print the raw key in hexadecimal format
-    for (size_t i = 0; i < keylen; ++i) {
-        printf("%02x", buf[i]);
-    }
-    printf("\n");
-
-    free(buf);
     EVP_PKEY_free(pkey);
-    return 0;
+    return result;
 }
-
-
 
 int main() {
     OpenSSL_add_all_algorithms();
@@ -169,7 +200,7 @@ int main() {
     }
 
     print_raw_key("public_key.pem", 0);
-    print_raw_key("private_key.pem", 0);
+    print_raw_key("private_key.pem", 1);
 
     /**
     if (read_pubkey_and_convert_to_bech32("public_key.pem", "output.json") != 0) {
