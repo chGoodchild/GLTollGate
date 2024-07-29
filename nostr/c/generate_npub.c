@@ -59,46 +59,59 @@ int generate_and_save_keys() {
     return 0;
 }
 
-int read_pubkey_and_convert_to_bech32(const char *pubkey_filename, const char *json_filename) {
-    FILE *fp = fopen(pubkey_filename, "r");
-    if (!fp) {
-        fprintf(stderr, "Failed to open public key PEM file.\n");
-        return 1;
+unsigned char* convert_der_to_bech32(const unsigned char* der, size_t der_len, char** bech32_address) {
+    EVP_PKEY* pkey = NULL;
+    const unsigned char* p = der;
+    if (d2i_PublicKey(EVP_PKEY_EC, &pkey, &p, der_len) == NULL) {
+        fprintf(stderr, "Failed to decode public key from DER.\n");
+        return NULL;
     }
 
-    EVP_PKEY *pkey = PEM_read_PUBKEY(fp, NULL, NULL, NULL);
-    fclose(fp);
-
-    if (!pkey) {
-        fprintf(stderr, "Failed to read public key from PEM file.\n");
-        return 1;
-    }
-
-    unsigned char *pubkey_raw;
-    size_t pubkey_raw_len;
-    EVP_PKEY_get_raw_public_key(pkey, NULL, &pubkey_raw_len);
-    pubkey_raw = malloc(pubkey_raw_len);
-    if (!EVP_PKEY_get_raw_public_key(pkey, pubkey_raw, &pubkey_raw_len)) {
-        fprintf(stderr, "Failed to extract raw public key.\n");
-        free(pubkey_raw);
+    // Use OSSL_ENCODER to handle key conversion
+    OSSL_ENCODER_CTX* ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "TEXT", "legacy", NULL);
+    if (ctx == NULL) {
+        fprintf(stderr, "Encoder context creation failed.\n");
         EVP_PKEY_free(pkey);
-        return 1;
+        return NULL;
     }
 
-    char *address = NULL;
-    if (wally_addr_segwit_from_bytes(pubkey_raw, pubkey_raw_len, "bc", 0, &address) != WALLY_OK) {
+    BIO* bio = BIO_new(BIO_s_mem());
+    if (bio == NULL) {
+        fprintf(stderr, "Failed to create BIO.\n");
+        OSSL_ENCODER_CTX_free(ctx);
+        EVP_PKEY_free(pkey);
+        return NULL;
+    }
+
+    if (OSSL_ENCODER_to_bio(ctx, bio) <= 0) {
+        fprintf(stderr, "Failed to encode public key.\n");
+        BIO_free(bio);
+        OSSL_ENCODER_CTX_free(ctx);
+        EVP_PKEY_free(pkey);
+        return NULL;
+    }
+
+    BUF_MEM* bptr = NULL;
+    BIO_get_mem_ptr(bio, &bptr);
+    char* raw_pubkey = malloc(bptr->length);
+    memcpy(raw_pubkey, bptr->data, bptr->length);
+
+    // Assume wally_address function is available to convert raw pubkey to Bech32
+    if (wally_addr_segwit_from_bytes((unsigned char*)raw_pubkey, bptr->length, "bc", 0, bech32_address) != WALLY_OK) {
         fprintf(stderr, "Failed to convert public key to Bech32 address.\n");
-        free(pubkey_raw);
+        free(raw_pubkey);
+        BIO_free(bio);
+        OSSL_ENCODER_CTX_free(ctx);
         EVP_PKEY_free(pkey);
-        return 1;
+        return NULL;
     }
 
-    output_json(json_filename, address);
-
-    free(address);
-    free(pubkey_raw);
+    free(raw_pubkey);
+    BIO_free(bio);
+    OSSL_ENCODER_CTX_free(ctx);
     EVP_PKEY_free(pkey);
-    return 0;
+
+    return 0; // Successfully converted
 }
 
 
@@ -178,38 +191,24 @@ int main() {
         return 1;
     }
 
+    size_t len_pub, len_priv; // Variables to hold the lengths of the keys
+    unsigned char *der_pubkey = get_raw_key("public_key.pem", 0, &len_pub);
+    unsigned char *der_privkey = get_raw_key("private_key.pem", 1, &len_priv);
 
-    size_t len_pub, len_priv; // Declare these variables to hold the lengths of the keys
-    unsigned char *raw_pubkey = get_raw_key("public_key.pem", 0, &len_pub);
-    unsigned char *raw_privkey = get_raw_key("private_key.pem", 1, &len_priv);
+    char* bech32_address = NULL;
 
-
-    if (raw_pubkey) {
-        printf("Public Key: ");
-        for (size_t i = 0; i < len_pub; i++) {
-            printf("%02x", raw_pubkey[i]);
-        }
-        printf("\n");
-        free(raw_pubkey); // Free the allocated buffer
+    if (der_pubkey && convert_der_to_bech32(der_pubkey, len_pub, &bech32_address) == 0) {
+        printf("Bech32 Address: %s\n", bech32_address);
+        free(bech32_address);
+    } else {
+        fprintf(stderr, "Failed to convert DER to Bech32.\n");
     }
 
-    if (raw_privkey) {
-        printf("Private Key: ");
-        for (size_t i = 0; i < len_priv; i++) {
-            printf("%02x", raw_privkey[i]);
-        }
-        printf("\n");
-        free(raw_privkey); // Free the allocated buffer
-    }
-
-    /**
-    if (read_pubkey_and_convert_to_bech32("public_key.pem", "output.json") != 0) {
-        fprintf(stderr, "Failed to process public key.\n");
-        return 1;
-    }
-    **/
+    free(der_pubkey);
+    free(der_privkey);
+    EVP_cleanup();
+    return 0;
 
     EVP_cleanup();
     return 0;
 }
-
