@@ -133,19 +133,19 @@ int print_raw_public_key(EVP_PKEY *pkey) {
 
 // Function to print raw private key data
 int print_raw_private_key(EVP_PKEY *pkey) {
-    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PRIVATE_KEY, "RAW", "PrivateKeyInfo", NULL);
+    OSSL_ENCODER_CTX *ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PRIVATE_KEY, "PEM", "PrivateKeyInfo", NULL);
     if (!ctx) {
-        fprintf(stderr, "Failed to create encoder context.\n");
+        fprintf(stderr, "Failed to create encoder context for private key.\n");
+        ERR_print_errors_fp(stderr);
         return 1;
     }
 
     unsigned char *buf = NULL;
     size_t buf_len = 0;
-    OSSL_ENCODER_to_data(ctx, &buf, &buf_len);
-
-    if (!buf) {
+    if (!OSSL_ENCODER_to_data(ctx, &buf, &buf_len)) {
         fprintf(stderr, "Failed to encode private key.\n");
         OSSL_ENCODER_CTX_free(ctx);
+        ERR_print_errors_fp(stderr);  // Print detailed OpenSSL errors
         return 1;
     }
 
