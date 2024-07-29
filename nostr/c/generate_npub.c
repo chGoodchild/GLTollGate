@@ -233,6 +233,25 @@ int main() {
     unsigned char *der_pubkey = get_raw_key("public_key.pem", 0, &len_pub);
     unsigned char *der_privkey = get_raw_key("private_key.pem", 1, &len_priv);
 
+    if (der_pubkey) {
+        printf("Public Key: ");
+        for (size_t i = 0; i < len_pub; i++) {
+            printf("%02x", der_pubkey[i]);
+        }
+        printf("\n");
+        free(der_pubkey); // Free the allocated buffer
+    }
+
+    if (der_privkey) {
+        printf("Private Key: ");
+        for (size_t i = 0; i < len_priv; i++) {
+            printf("%02x", der_privkey[i]);
+        }
+        printf("\n");
+        free(der_privkey); // Free the allocated buffer
+    }
+
+
     char* bech32_address = NULL;
 
     if (der_pubkey && convert_der_to_bech32(der_pubkey, len_pub, &bech32_address) == 0) {
