@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-I/usr/local/include -I/usr/include/openssl -g -Wall
-LDFLAGS=-L/usr/local/lib -lwallycore -lssl -lcrypto -Wl,-rpath,/usr/local/lib
+CFLAGS=-I/usr/local/ssl/include -g -Wall
+LDFLAGS=-L/usr/local/ssl/lib64 -lwallycore -lssl -lcrypto -Wl,-rpath,/usr/local/ssl/lib64
 
 SRC=generate_npub.c
 OBJ=$(SRC:.c=.o)

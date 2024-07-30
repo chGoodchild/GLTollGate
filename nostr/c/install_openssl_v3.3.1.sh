@@ -124,5 +124,9 @@ else
     exit 1
 fi
 
+echo 'export LD_LIBRARY_PATH=/usr/local/ssl/lib:$LD_LIBRARY_PATH' | sudo tee /etc/profile.d/ssl_libs.sh > /dev/null
+sudo chmod +x /etc/profile.d/ssl_libs.sh
+source /etc/profile.d/ssl_libs.sh 
+
 echo "OpenSSL $OPENSSL_VERSION installation completed."
 

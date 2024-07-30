@@ -14,7 +14,7 @@
 #include <openssl/encoder.h>
 #include <openssl/err.h>  // For ERR_print_errors_fp
 #include <openssl/core_names.h>
-
+#include <openssl/opensslv.h>
 
 void output_json(const char* filename, const char* address) {
     FILE *fp = fopen(filename, "w");
@@ -223,6 +223,7 @@ unsigned char* get_raw_key(const char *key_filename, int is_private, size_t *out
 }
 
 int main() {
+    printf("OpenSSL version linked: %s\n", OPENSSL_VERSION_TEXT);
     OpenSSL_add_all_algorithms();
     if (generate_and_save_keys() != 0) {
         fprintf(stderr, "Key generation and saving failed.\n");
