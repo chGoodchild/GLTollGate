@@ -90,10 +90,6 @@ if [ ! -f "$CONF_FILE" ] || ! grep -q "$LIB_DIR" "$CONF_FILE"; then
 else
     echo "Linker configuration already set."
 fi
-if [ $? -ne 0 ]; then
-    echo "Make install failed. Exiting."
-    exit 1
-fi
 
 # Update the PATH to include the new OpenSSL binary location
 if ! grep -q "$INSTALLATION_DIR/bin" "$HOME/.bashrc"; then
@@ -108,4 +104,25 @@ fi
 echo "OpenSSL version installed:"
 openssl version
 
+# Update the symbolic link to point to the new OpenSSL binary
+echo "Updating symbolic link for OpenSSL..."
+sudo ln -sf /usr/local/ssl/bin/openssl /usr/bin/openssl
+if [ $? -eq 0 ]; then
+    echo "Symbolic link updated successfully."
+else
+    echo "Failed to update symbolic link. Please check permissions and file paths."
+    exit 1
+fi
+
+# Verify installation
+echo "Verifying OpenSSL version installed:"
+openssl version
+if [[ $(openssl version) =~ "$OPENSSL_VERSION" ]]; then
+    echo "OpenSSL $OPENSSL_VERSION installation completed and verified."
+else
+    echo "Error: OpenSSL version does not match $OPENSSL_VERSION."
+    exit 1
+fi
+
 echo "OpenSSL $OPENSSL_VERSION installation completed."
+
