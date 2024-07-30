@@ -78,6 +78,7 @@ void check_curve(EVP_PKEY *pkey) {
         }
     }
 }
+
 unsigned char* convert_der_to_bech32(const unsigned char* der, size_t der_len, char** bech32_address) {
     EVP_PKEY* pkey = NULL;
     // unsigned char* p = (unsigned char*)der;  // Remove const to allow modification

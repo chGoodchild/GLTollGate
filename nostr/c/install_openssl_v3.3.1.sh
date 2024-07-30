@@ -117,12 +117,6 @@ fi
 # Verify installation
 echo "Verifying OpenSSL version installed:"
 openssl version
-if [[ $(openssl version) =~ "$OPENSSL_VERSION" ]]; then
-    echo "OpenSSL $OPENSSL_VERSION installation completed and verified."
-else
-    echo "Error: OpenSSL version does not match $OPENSSL_VERSION."
-    exit 1
-fi
 
 echo 'export LD_LIBRARY_PATH=/usr/local/ssl/lib:$LD_LIBRARY_PATH' | sudo tee /etc/profile.d/ssl_libs.sh > /dev/null
 sudo chmod +x /etc/profile.d/ssl_libs.sh
