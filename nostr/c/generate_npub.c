@@ -84,11 +84,22 @@ unsigned char* convert_der_to_bech32(const unsigned char* der, size_t der_len, c
     const unsigned char* p = der;
 
     printf("Attempting to decode DER data of length: %zu\n", der_len);
-    for (int i = 0; i < 10 && i < der_len; i++) {
+    for (int i = 0; i < der_len; i++) {
         printf("%02X ", der[i]);
     }
     printf("\n");
 
+
+    if (pkey == NULL) {
+        printf("EVP_PKEY is NULL, creating new key.\n");
+        pkey = EVP_PKEY_new();  // Ensure pkey is properly initialized
+        if (pkey == NULL) {
+            ERR_print_errors_fp(stderr);
+            return NULL; // Handle allocation failure
+        }
+    } else {
+        printf("EVP_PKEY is already initialized.\n");
+    }
 
     if (d2i_PublicKey(EVP_PKEY_EC, &pkey, &p, der_len) == NULL) {
         ERR_print_errors_fp(stderr);
@@ -240,7 +251,6 @@ int main() {
             printf("%02x", der_pubkey[i]);
         }
         printf("\n");
-        free(der_pubkey); // Free the allocated buffer
     }
 
     if (der_privkey) {
@@ -249,7 +259,6 @@ int main() {
             printf("%02x", der_privkey[i]);
         }
         printf("\n");
-        free(der_privkey); // Free the allocated buffer
     }
 
 
@@ -264,9 +273,6 @@ int main() {
 
     free(der_pubkey);
     free(der_privkey);
-    EVP_cleanup();
-    return 0;
-
     EVP_cleanup();
     return 0;
 }

@@ -50,7 +50,7 @@ cd $OPENSSL_VERSION || exit
 
 # Configure, compile and install OpenSSL
 echo "Configuring, compiling, and installing OpenSSL..."
-./config --prefix=$INSTALLATION_DIR --openssldir=$INSTALLATION_DIR shared zlib
+./config --prefix=$INSTALLATION_DIR --openssldir=$INSTALLATION_DIR shared zlib -d
 if [ $? -ne 0 ]; then
     echo "Configuration failed. Exiting."
     exit 1
