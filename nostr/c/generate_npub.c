@@ -85,6 +85,7 @@ char* convert_ec_public_key_to_hex(EVP_PKEY *pkey) {
     return hex;
 }
 
+
 char* convert_key_to_hex(const char* filename, int is_public) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -92,12 +93,7 @@ char* convert_key_to_hex(const char* filename, int is_public) {
         return NULL;
     }
 
-    EVP_PKEY *pkey = NULL;
-    if (is_public) {
-        pkey = PEM_read_PUBKEY(file, NULL, NULL, NULL);
-    } else {
-        pkey = PEM_read_PrivateKey(file, NULL, NULL, NULL);
-    }
+    EVP_PKEY *pkey = is_public ? PEM_read_PUBKEY(file, NULL, NULL, NULL) : PEM_read_PrivateKey(file, NULL, NULL, NULL);
     fclose(file);
 
     if (!pkey) {
@@ -105,18 +101,20 @@ char* convert_key_to_hex(const char* filename, int is_public) {
         return NULL;
     }
 
-    char *hex;
-    if (is_public) {
-        hex = convert_ec_public_key_to_hex(pkey);
-    } else {
-        // Existing code for private key
+    unsigned char *der = NULL;
+    int len = is_public ? i2d_PUBKEY(pkey, &der) : i2d_PrivateKey(pkey, &der);
+    if (len < 0 || !der) {
+        fprintf(stderr, "Failed to convert key to DER format\n");
+        EVP_PKEY_free(pkey);
+        return NULL;
     }
 
+    char *hex = to_hex(der, len);
+    OPENSSL_free(der);  // It's important to free the DER data
     EVP_PKEY_free(pkey);
+
     return hex;
 }
-
-
 
 
 int generate_ecdsa_keypair() {
