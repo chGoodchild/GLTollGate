@@ -1,6 +1,5 @@
 #include <stdint.h>  // Include this line to define uint64_t and other standard integer types
-#include "/home/pachai/nostr_client_relay/src/nostril/nostri.h" // Ensure this is included at the top
-
+#include "../../../nostr_client_relay/src/nostril/nostri.h"
 
 #include <stdio.h>   // For FILE, fopen, fprintf, fclose, etc.
 #include <stdlib.h>  // For malloc and free
