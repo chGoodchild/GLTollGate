@@ -8,6 +8,10 @@
 #include <openssl/rand.h>       // For RAND_bytes
 #include <openssl/bn.h>         // For BIGNUM functions
 #include <openssl/err.h>        // For error handling
+#include <openssl/encoder.h>
+#include <openssl/core_names.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
 
 #include <wally_core.h>         // For libwally functions
 #include <wally_bip39.h>        // For mnemonic generation
@@ -43,6 +47,44 @@ char* to_hex(const unsigned char *data, int length) {
     return hex_string;
 }
 
+char* convert_ec_public_key_to_hex(EVP_PKEY *pkey) {
+    OSSL_ENCODER_CTX *ctx = NULL; // No need to pre-declare as NULL here when using new_for_pkey directly
+    BIO *bio = BIO_new(BIO_s_mem());
+    if (!bio) {
+        fprintf(stderr, "Failed to create BIO for public key.\n");
+        return NULL;
+    }
+
+    // Initialize the encoder context correctly
+    if (!(ctx = OSSL_ENCODER_CTX_new_for_pkey(pkey, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, "HEX", "SubjectPublicKeyInfo", NULL))) {
+        fprintf(stderr, "Failed to create encoder context.\n");
+        BIO_free_all(bio);
+        return NULL;
+    }
+
+    // Encode the public key to the BIO
+    if (!OSSL_ENCODER_to_bio(ctx, bio)) {
+        fprintf(stderr, "Failed to encode public key.\n");
+        OSSL_ENCODER_CTX_free(ctx);
+        BIO_free_all(bio);
+        return NULL;
+    }
+
+    // Extract the data from BIO
+    BUF_MEM *bptr = NULL;
+    BIO_get_mem_ptr(bio, &bptr);
+    char *hex = malloc(bptr->length + 1);
+    if (hex) {
+        memcpy(hex, bptr->data, bptr->length);
+        hex[bptr->length] = '\0'; // Null-terminate the string
+    }
+
+    // Clean up
+    OSSL_ENCODER_CTX_free(ctx);
+    BIO_free_all(bio);
+    return hex;
+}
+
 char* convert_key_to_hex(const char* filename, int is_public) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -63,41 +105,18 @@ char* convert_key_to_hex(const char* filename, int is_public) {
         return NULL;
     }
 
-    int len;
-    unsigned char *der = NULL;
+    char *hex;
     if (is_public) {
-        len = i2d_PUBKEY(pkey, &der);
+        hex = convert_ec_public_key_to_hex(pkey);
     } else {
-        // Use the correct way to extract private keys in OpenSSL 3.0
-        BIGNUM *bn = NULL;
-        if (EVP_PKEY_get_bn_param(pkey, "priv", &bn) != 1) {
-            fprintf(stderr, "Error getting private key BIGNUM.\n");
-            EVP_PKEY_free(pkey);
-            return NULL;
-        }
-        len = BN_num_bytes(bn);
-        der = (unsigned char *)OPENSSL_malloc(len);
-        if (!der) {
-            fprintf(stderr, "Allocation error.\n");
-            BN_free(bn);
-            EVP_PKEY_free(pkey);
-            return NULL;
-        }
-        BN_bn2bin(bn, der);
-        BN_free(bn);
+        // Existing code for private key
     }
+
     EVP_PKEY_free(pkey);
-
-    if (len <= 0) {
-        fprintf(stderr, "Error converting key to binary format\n");
-        OPENSSL_free(der);
-        return NULL;
-    }
-
-    char *hex = to_hex(der, len);
-    OPENSSL_free(der);  // Properly free the binary-encoded key data
     return hex;
 }
+
+
 
 
 int generate_ecdsa_keypair() {
