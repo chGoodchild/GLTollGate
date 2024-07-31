@@ -1,13 +1,17 @@
-#include <wally_core.h>
-#include <wally_bip39.h>
-#include <wally_address.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-#include <openssl/rand.h>
-#include <openssl/err.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>   // For FILE, fopen, fprintf, fclose, etc.
+#include <stdlib.h>  // For malloc and free
+#include <string.h>  // If you need memory functions like memset etc.
+#include <stddef.h>  // For NULL
 
+#include <openssl/evp.h>        // For EVP_PKEY, EVP_PKEY_CTX, etc.
+#include <openssl/pem.h>        // For PEM_read_PUBKEY, PEM_read_PrivateKey
+#include <openssl/rand.h>       // For RAND_bytes
+#include <openssl/bn.h>         // For BIGNUM functions
+#include <openssl/err.h>        // For error handling
+
+#include <wally_core.h>         // For libwally functions
+#include <wally_bip39.h>        // For mnemonic generation
+#include <wally_address.h>      // Additional libwally functionality
 
 // Function Declarations
 void handle_errors();
