@@ -68,17 +68,34 @@ char* convert_key_to_hex(const char* filename, int is_public) {
     if (is_public) {
         len = i2d_PUBKEY(pkey, &der);
     } else {
-        len = i2d_PrivateKey(pkey, &der);
+        // Use the correct way to extract private keys in OpenSSL 3.0
+        BIGNUM *bn = NULL;
+        if (EVP_PKEY_get_bn_param(pkey, "priv", &bn) != 1) {
+            fprintf(stderr, "Error getting private key BIGNUM.\n");
+            EVP_PKEY_free(pkey);
+            return NULL;
+        }
+        len = BN_num_bytes(bn);
+        der = (unsigned char *)OPENSSL_malloc(len);
+        if (!der) {
+            fprintf(stderr, "Allocation error.\n");
+            BN_free(bn);
+            EVP_PKEY_free(pkey);
+            return NULL;
+        }
+        BN_bn2bin(bn, der);
+        BN_free(bn);
     }
     EVP_PKEY_free(pkey);
 
-    if (len < 0 || !der) {
-        fprintf(stderr, "Error converting key to DER format\n");
+    if (len <= 0) {
+        fprintf(stderr, "Error converting key to binary format\n");
+        OPENSSL_free(der);
         return NULL;
     }
 
     char *hex = to_hex(der, len);
-    OPENSSL_free(der);  // Properly free the DER-encoded key data
+    OPENSSL_free(der);  // Properly free the binary-encoded key data
     return hex;
 }
 
