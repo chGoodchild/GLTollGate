@@ -13,7 +13,7 @@ char* to_hex(const unsigned char *data, int length);
 void output_json(const char* npub_hex, const char* nsec_hex) {
     printf("{\n");
     printf("  \"npub_hex\": \"%s\",\n", npub_hex);
-    printf("  \"nsec_hex\": \"%s\",\n", nsec_hex);
+    printf("  \"nsec_hex\": \"%s\"\n", nsec_hex);
     printf("}\n");
 }
 
