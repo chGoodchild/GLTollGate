@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# Define the URL of the Python script
-URL="https://github.com/chGoodchild/nostrKeys/releases/download/v0.0.3/generate_npub.py"
-SEEDPHRASE="silk interest cruel fan chair bronze pond palace shield language trial citizen habit proof ankle book tourist book galaxy agent drum total idea frog"
-SCRIPT="/tmp/generate_npub.py"
-
 # Get the absolute path to the script directory
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 OUTPUT_FILE="$SCRIPT_DIR/nostr_keys.json"
+KEYGEN_SCRIPT="$SCRIPT_DIR/../c/generate_npub" # Corrected path to the keygen script
 
 # Function to check if nostr_keys.json is valid
 check_nostr_keys() {
@@ -29,11 +25,12 @@ check_nostr_keys() {
 # Check if Python is installed
 if command -v python3 > /dev/null; then
     ./install/install_keygen.sh
-    # Ensure the script is executable
-    chmod +x $SCRIPT
 
-    # Run the script and save the output to a JSON file
-    python3 $SCRIPT "$SEEDPHRASE" > $OUTPUT_FILE
+    # Ensure the key generation script is executable
+    chmod +x "$KEYGEN_SCRIPT"
+
+    # Generate Nostr keys using the keygen script and save them to OUTPUT_FILE
+    "$KEYGEN_SCRIPT" | jq > "$OUTPUT_FILE"
 
     # Check if the JSON file was created successfully
     if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
