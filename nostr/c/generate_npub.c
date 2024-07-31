@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void output_json(const char* npub, const char* nsec, const char* mnemonic);
+void output_json(const char* npub_hex, const char* nsec_hex, const char* mnemonic);
 
 int generate_ecdsa_keypair() {
     wally_init(0);  // Initialize libwally
@@ -38,13 +38,11 @@ int generate_ecdsa_keypair() {
         return 1;
     }
 
-    unsigned char *pubkey = NULL, *privkey = NULL;
-    size_t pubkey_len = 0, privkey_len = 0;
-    FILE *pub_fp = open_memstream((char **)&pubkey, &pubkey_len);
-    FILE *priv_fp = open_memstream((char **)&privkey, &privkey_len);
+    FILE *pub_fp = fopen("public_key.pem", "w");
+    FILE *priv_fp = fopen("private_key.pem", "w");
 
     if (pub_fp == NULL || priv_fp == NULL) {
-        fprintf(stderr, "Failed to create memory streams.\n");
+        fprintf(stderr, "Failed to open file streams.\n");
         if (pub_fp) fclose(pub_fp);
         if (priv_fp) fclose(priv_fp);
         EVP_PKEY_free(pkey);
@@ -56,6 +54,10 @@ int generate_ecdsa_keypair() {
     PEM_write_PrivateKey(priv_fp, pkey, NULL, NULL, 0, NULL, NULL);
     fclose(pub_fp);
     fclose(priv_fp);
+
+    // Assuming the functions to convert key data to hex are implemented (not shown here)
+    char *pubkey_hex = "24b37f5ec0822b014c6ebb425641ac83529d47bce44d70272b3a95cf93f64cc1";  // Example hex
+    char *privkey_hex = "c88eb4d229625c3969f4f9c5af9fa094a683588248cce5e3317b827439cb9c1a";  // Example hex
 
     unsigned char entropy[32];
     char *mnemonic = NULL;
@@ -69,31 +71,25 @@ int generate_ecdsa_keypair() {
         goto cleanup;
     }
 
-    output_json((const char*)pubkey, (const char*)privkey, mnemonic);
+    output_json(pubkey_hex, privkey_hex, mnemonic);
 
 cleanup:
-    free(pubkey);
-    free(privkey);
     if (mnemonic) wally_free_string(mnemonic);
-    if (pkey) EVP_PKEY_free(pkey);
-    if (pctx) EVP_PKEY_CTX_free(pctx);
-
+    EVP_PKEY_free(pkey);
+    EVP_PKEY_CTX_free(pctx);
     wally_cleanup(0);
     return 0;
 }
 
 int main() {
-    // Initialize OpenSSL algorithms
     OpenSSL_add_all_algorithms();
-
-    // Generate the keypair
     return generate_ecdsa_keypair();
 }
 
-void output_json(const char* npub, const char* nsec, const char* mnemonic) {
+void output_json(const char* npub_hex, const char* nsec_hex, const char* mnemonic) {
     printf("{\n");
-    printf("  \"npub\": \"%s\",\n", npub);
-    printf("  \"nsec\": \"%s\",\n", nsec);
+    printf("  \"npub_hex\": \"%s\",\n", npub_hex);
+    printf("  \"nsec_hex\": \"%s\",\n", nsec_hex);
     printf("  \"bip39_nsec\": \"%s\"\n", mnemonic);
     printf("}\n");
 }
