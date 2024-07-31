@@ -1,3 +1,7 @@
+#include <stdint.h>  // Include this line to define uint64_t and other standard integer types
+#include "/home/pachai/nostr_client_relay/src/nostril/nostri.h" // Ensure this is included at the top
+
+
 #include <stdio.h>   // For FILE, fopen, fprintf, fclose, etc.
 #include <stdlib.h>  // For malloc and free
 #include <string.h>  // If you need memory functions like memset etc.
@@ -117,35 +121,23 @@ char* convert_key_to_hex(const char* filename, int is_public) {
 }
 
 
+
 int generate_ecdsa_keypair() {
-    if (wally_init(0) != WALLY_OK) {  // Ensure WALLY_OK is defined in wally_core.h
-        fprintf(stderr, "Failed to initialize libwally.\n");
+    secp256k1_context *ctx = NULL;
+    if (!init_secp_context(&ctx)) {
+        fprintf(stderr, "Failed to initialize secp256k1 context.\n");
         return 1;
     }
 
-    EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
-    if (!pctx) handle_errors();
-
-    if (EVP_PKEY_keygen_init(pctx) != 1) handle_errors();
-    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_secp256k1) != 1) handle_errors();
-    if (EVP_PKEY_keygen(pctx, &pkey) != 1) handle_errors();
-
-    FILE *pub_fp = fopen("public_key.pem", "w");
-    FILE *priv_fp = fopen("private_key.pem", "w");
-    if (!pub_fp || !priv_fp || !PEM_write_PUBKEY(pub_fp, pkey) || !PEM_write_PrivateKey(priv_fp, pkey, NULL, NULL, 0, NULL, NULL)) {
-        fprintf(stderr, "Failed to write keys to files.\n");
-        if (pub_fp) fclose(pub_fp);
-        if (priv_fp) fclose(priv_fp);
-        EVP_PKEY_free(pkey);
-        EVP_PKEY_CTX_free(pctx);
+    struct key my_key;
+    if (!generate_key(ctx, &my_key, NULL)) { // Assuming no mining difficulty needed
+        fprintf(stderr, "Key generation failed.\n");
+        secp256k1_context_destroy(ctx);
         return 1;
     }
-    fclose(pub_fp);
-    fclose(priv_fp);
 
-    char *pubkey_hex = convert_key_to_hex("public_key.pem", 1);
-    char *privkey_hex = convert_key_to_hex("private_key.pem", 0);
+    char *pubkey_hex = to_hex(my_key.pubkey, 32);
+    char *privkey_hex = to_hex(my_key.secret, 32);
 
     unsigned char entropy[32];
     char *mnemonic = NULL;
@@ -163,11 +155,10 @@ cleanup:
     free(pubkey_hex);
     free(privkey_hex);
     if (mnemonic) wally_free_string(mnemonic);
-    EVP_PKEY_free(pkey);
-    EVP_PKEY_CTX_free(pctx);
-    wally_cleanup(0);
+    secp256k1_context_destroy(ctx);
     return 0;
 }
+
 
 int main() {
     OpenSSL_add_all_algorithms();
