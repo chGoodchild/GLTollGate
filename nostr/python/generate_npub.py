@@ -74,6 +74,17 @@ def generate_keypair_and_mnemonic():
     return populate_json(pk, original_entropy)
 
 
+def get_keypair_from_nsec_hex(nsec_hex):
+    # Convert the hexadecimal private key string to a bytes object
+    entropy = bytes.fromhex(nsec_hex)
+
+    # Generate the private key from the entropy
+    pk = PrivateKey(entropy)
+
+    # Populate and return the JSON output using the generated private key
+    return populate_json(pk, entropy)
+
+
 def get_keypair_from_mnemonic(mnemonic):
     # Assume input is a seed phrase (mnemonic)
     original_entropy = entropy_from_mnemonic(mnemonic)
@@ -87,7 +98,7 @@ if __name__ == "__main__":
     # Check if a mnemonic was provided as an argument
     if len(sys.argv) > 1:
         input_value = sys.argv[1]
-        keypair_and_mnemonic = get_keypair_from_mnemonic(input_value)
+        keypair_and_mnemonic = get_keypair_from_nsec_hex(input_value)
     else:
         keypair_and_mnemonic = generate_keypair_and_mnemonic()
 
