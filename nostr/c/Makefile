@@ -1,4 +1,5 @@
 CC=gcc
+
 CFLAGS=-I/usr/local/ssl/include -I../../../nostr_client_relay/src/nostril -g -Wall
 LDFLAGS=-L/usr/local/ssl/lib64 -lwallycore -lssl -lcrypto -lsecp256k1 -Wl,-rpath,/usr/local/ssl/lib64
 

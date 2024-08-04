@@ -1,7 +1,7 @@
 #include <stdio.h>   // For printf
 #include <stdlib.h>  // For malloc, free
 #include <string.h>  // For memory functions like memset
-#include <wally_bip39.h> // For mnemonic generation from wally
+// #include <wally_bip39.h> // For mnemonic generation from wally
 
 // Include the necessary header for secp256k1 context and key generation
 #include "../../../nostr_client_relay/src/nostril/nostri.h"
