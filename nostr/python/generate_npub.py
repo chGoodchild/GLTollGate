@@ -1,4 +1,4 @@
-import json, sys
+import json, sys, argparse
 from nostr.key import PrivateKey
 from mnemonic import Mnemonic
 
@@ -93,12 +93,25 @@ def get_keypair_from_mnemonic(mnemonic):
     pk = nsec_from_entropy(original_entropy)[1]
     return populate_json(pk, original_entropy)
 
+def setup_parser():
+    parser = argparse.ArgumentParser(description='Generate NOSTR key pairs from a mnemonic or hex key. \
+    Specify --type to indicate the type of input ("mnemonic" or "hex") and --value for the input string. \
+    If no arguments are provided, a new keypair and mnemonic will be generated automatically.',
+    formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('--type', choices=['mnemonic', 'hex'], required=False, help='Type of input: "mnemonic" for a mnemonic phrase, "hex" for a hexadecimal private key.')
+    parser.add_argument('--value', required=False, help='The actual mnemonic phrase or hexadecimal key value.')
+    return parser
 
 if __name__ == "__main__":
     # Check if a mnemonic was provided as an argument
     if len(sys.argv) > 1:
-        input_value = sys.argv[1]
-        keypair_and_mnemonic = get_keypair_from_nsec_hex(input_value)
+        parser = setup_parser()
+        args = parser.parse_args()
+
+        if args.type == 'mnemonic':
+            keypair_and_mnemonic = get_keypair_from_mnemonic(args.value)
+        elif args.type == 'hex':
+            keypair_and_mnemonic = get_keypair_from_nsec_hex(args.value)
     else:
         keypair_and_mnemonic = generate_keypair_and_mnemonic()
 
