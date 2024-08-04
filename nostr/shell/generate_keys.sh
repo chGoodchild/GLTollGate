@@ -5,22 +5,35 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 OUTPUT_FILE="$SCRIPT_DIR/nostr_keys.json"
 KEYGEN_SCRIPT="$SCRIPT_DIR/../c/generate_npub" # Corrected path to the keygen script
 
-# Function to check if nostr_keys.json is valid
+# Function to check if specific keys exist and are valid
 check_nostr_keys() {
-    if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
-        for key in npub nsec nsec_hex npub_hex bip39_nsec; do
-            value=$(jq -r --arg key "$key" '.[$key]' "$OUTPUT_FILE")
-            if [ -z "$value" ] || [ "$value" = "null" ]; then
-                echo "Error: Missing or empty value for $key in $OUTPUT_FILE"
-                exit 1
-            fi
-        done
+    keys_exist=true
+    for key in npub_hex nsec_hex; do
+        value=$(jq -r --arg key "$key" '.[$key]' "$OUTPUT_FILE")
+        if [ -z "$value" ] || [ "$value" = "null" ]; then
+            echo "Error: Missing or empty value for $key in $OUTPUT_FILE"
+            keys_exist=false
+            break
+        fi
+    done
+
+    if $keys_exist; then
         echo "Nostr keys are already present and valid in $OUTPUT_FILE"
+        return 0  # Returning 0, indicating success
     else
-        echo "Error: nostr_keys.json is not present or is empty, and Python is not available to generate new keys."
-        exit 1
+        echo "Required keys are not present or are empty, need to generate new keys."
+        return 1
     fi
 }
+
+# First check if nostr_keys.json exists and contains the necessary keys
+if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
+    if check_nostr_keys; then
+        exit 0
+    fi
+else
+    echo "$OUTPUT_FILE does not exist or is empty."
+fi
 
 # Check if Python is installed
 if command -v python3 > /dev/null; then
@@ -32,15 +45,15 @@ if command -v python3 > /dev/null; then
     # Generate Nostr keys using the keygen script and save them to OUTPUT_FILE
     "$KEYGEN_SCRIPT" | jq > "$OUTPUT_FILE"
 
-    # Check if the JSON file was created successfully
-    if [ -f "$OUTPUT_FILE" ] && [ -s "$OUTPUT_FILE" ]; then
+    # Check again if the necessary keys now exist
+    if check_nostr_keys; then
         echo "Nostr keys generated and saved to $OUTPUT_FILE"
     else
         echo "Failed to generate Nostr keys."
         exit 1
     fi
 else
-    echo "Python is not installed. Checking for existing nostr_keys.json..."
-    check_nostr_keys
+    echo "Python is not installed and necessary keys are missing."
+    exit 1
 fi
 
