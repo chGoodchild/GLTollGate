@@ -4,11 +4,7 @@ CFLAGS=-I/usr/local/ssl/include -I../../../nostr_client_relay/src/nostril -g -Wa
 LDFLAGS=-L/usr/local/ssl/lib64 -lwallycore -lssl -lcrypto -lsecp256k1 -Wl,-rpath,/usr/local/ssl/lib64
 
 # Source files
-SRC=generate_npub.c \
-    ../../../nostr_client_relay/src/nostril/nostri.c \
-    ../../../nostr_client_relay/src/nostril/aes.c \
-    ../../../nostr_client_relay/src/nostril/base64.c \
-    ../../../nostr_client_relay/src/nostril/sha256.c
+SRC=generate_npub.c nostri.c aes.c base64.c sha256.c
 
 # Object files
 OBJ=$(SRC:.c=.o)

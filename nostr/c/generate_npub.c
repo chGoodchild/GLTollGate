@@ -4,7 +4,8 @@
 // #include <wally_bip39.h> // For mnemonic generation from wally
 
 // Include the necessary header for secp256k1 context and key generation
-#include "../../../nostr_client_relay/src/nostril/nostri.h"
+#include "nostri.h"
+// #include "../../../nostr_client_relay/src/nostril/nostri.h"
 
 // Function Declarations
 void output_json(const char* npub_hex, const char* nsec_hex);
