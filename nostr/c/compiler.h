@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "config.h"
+// #include "config.h"
 
 #if HAVE_UNALIGNED_ACCESS
 #define alignment_ok(p, n) 1
