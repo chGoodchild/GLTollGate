@@ -4,6 +4,7 @@
 #include "secp256k1.h"
 #include "secp256k1_ecdh.h"
 #include "secp256k1_schnorrsig.h"
+#include <stdint.h>
 
 #define VERSION "0.1.3"
 #define MAX_TAGS 32
