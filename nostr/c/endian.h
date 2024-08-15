@@ -3,7 +3,7 @@
 #define CCAN_ENDIAN_H
 #include <stdint.h>
 
-// #include "config.h"
+#include "config.h"
 #include "cursor.h"
 
 /**
