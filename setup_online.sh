@@ -76,7 +76,7 @@ if ! check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/
     exit 1
 fi
 
-if ! check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "$NODOSPLASH_IPK_CHECKSUM"; then
+if ! check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v0.0.3/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "$NODOSPLASH_IPK_CHECKSUM"; then
     echo "Error downloading or verifying nodogsplash_5.0.0-1_mips_24kc.ipk. Exiting..."
     exit 1
 fi
