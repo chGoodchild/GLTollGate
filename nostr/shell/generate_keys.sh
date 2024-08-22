@@ -36,24 +36,18 @@ else
 fi
 
 # Check if Python is installed
-if command -v python3 > /dev/null; then
-    ./install/install_keygen.sh
+./install/install_keygen.sh
 
-    # Ensure the key generation script is executable
-    chmod +x "$KEYGEN_SCRIPT"
+# Ensure the key generation script is executable
+chmod +x "$KEYGEN_SCRIPT"
 
-    # Generate Nostr keys using the keygen script and save them to OUTPUT_FILE
-    "$KEYGEN_SCRIPT" | jq > "$OUTPUT_FILE"
+# Generate Nostr keys using the keygen script and save them to OUTPUT_FILE
+"$KEYGEN_SCRIPT" | jq > "$OUTPUT_FILE"
 
-    # Check again if the necessary keys now exist
-    if check_nostr_keys; then
-        echo "Nostr keys generated and saved to $OUTPUT_FILE"
-    else
-        echo "Failed to generate Nostr keys."
-        exit 1
-    fi
+# Check again if the necessary keys now exist
+if check_nostr_keys; then
+    echo "Nostr keys generated and saved to $OUTPUT_FILE"
 else
-    echo "Python is not installed and necessary keys are missing."
+    echo "Failed to generate Nostr keys."
     exit 1
 fi
-
