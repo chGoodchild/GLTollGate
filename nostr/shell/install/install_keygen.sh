@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # Define URLs and file paths
-KEYGEN_SCRIPT_URL="https://github.com/chGoodchild/GLTollGate/releases/download/v0.0.3/generate_npub"
+KEYGEN_SCRIPT_URL="https://github.com/chGoodchild/TollGateNostrToolKit/releases/download/v0.0.6/generate_npub_optimized"
 KEYGEN_PROGRAM="/tmp/generate_npub"
-EXPECTED_HASH="002dfa4894998580538080e1be9e68e2b3bec89dbe226287566d04f124ec3994"
+EXPECTED_HASH="32197ad721a607f140c862dc40c7d4ccec77afd47b0978d6449767d099d2ff55"
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 OUTPUT_FILE="$SCRIPT_DIR/../nostr_keys.json"
 

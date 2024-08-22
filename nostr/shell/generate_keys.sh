@@ -3,7 +3,7 @@
 # Get the absolute path to the script directory
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 OUTPUT_FILE="$SCRIPT_DIR/nostr_keys.json"
-KEYGEN_SCRIPT="$SCRIPT_DIR/../c/generate_npub" # Corrected path to the keygen script
+KEYGEN_SCRIPT="/tmp/generate_npub" # Corrected path to the keygen script
 
 # Function to check if specific keys exist and are valid
 check_nostr_keys() {
