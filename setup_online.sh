@@ -4,7 +4,7 @@
 GIT_TAG="0.0.4"
 
 # Define checksums
-GLTOLLGATE_ZIP_CHECKSUM="828791e4af4b35ca0089ba8788e0999da5716de18f02dea0daa63b31aaec426c"
+GLTOLLGATE_ZIP_CHECKSUM="0b5be6fbcc18f0818595de2cc37fcf09ab0823c0e2f3a5ac9c27dddc180a98a3"
 NODOSPLASH_IPK_CHECKSUM="76834cbd51cb1b989f6a7b33b21fa610d9b5fd310d918aa8bea3a5b2a9358b5a"
 
 # Ensure the download directory exists
@@ -81,6 +81,7 @@ if ! check_and_download "https://github.com/chGoodchild/GLTollGate/releases/down
     exit 1
 fi
 
+
 echo "Downloading required files..."
 check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"
 check_and_download "https://github.com/chGoodchild/GLTollGate/releases/download/v$GIT_TAG/nodogsplash_5.0.0-1_mips_24kc.ipk" "/tmp/download/nodogsplash_5.0.0-1_mips_24kc.ipk" "$NODOSPLASH_IPK_CHECKSUM"
@@ -143,6 +144,8 @@ install_packages_if_needed() {
     fi
 }
 
+# Generate nsec
+
 
 # Install dependencies
 echo "Installing dependencies..."
@@ -180,6 +183,10 @@ if echo "$nodogsplash_status" | grep -q "not found"; then
 else
     echo "Service 'nodogsplash' is running."
 fi
+
+chmod +x /nostr/shell/install/install_keygen.sh /nostr/shell/install_keygen.sh
+/nostr/shell/install/./install_keygen.sh
+/nostr/shell/./generate_keys.sh
 
 # Define the command to add to crontab
 CRON_JOB="* * * * * /etc/init.d/check_time_and_disconnect start"
