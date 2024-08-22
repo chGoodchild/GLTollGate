@@ -5,7 +5,7 @@ KEYGEN_SCRIPT_URL="https://github.com/chGoodchild/TollGateNostrToolKit/releases/
 KEYGEN_PROGRAM="/tmp/generate_npub"
 EXPECTED_HASH="32197ad721a607f140c862dc40c7d4ccec77afd47b0978d6449767d099d2ff55"
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-OUTPUT_FILE="$SCRIPT_DIR/../nostr_keys.json"
+OUTPUT_FILE="/www/cgi-bin/nostr_keys.json"
 
 # Function to download and verify the keygen script
 download_and_verify_script() {
