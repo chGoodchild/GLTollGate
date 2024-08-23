@@ -142,7 +142,13 @@ int main(int argc, const char* argv[])
     return 6;
   }
 
-  char* json = malloc(102400);
+  size_t json_size = 102400 + strlen(args.content) * 2; // Estimate size needed
+  char* json = malloc(json_size);
+  if (!json) {
+    fprintf(stderr, "Failed to allocate memory for JSON\n");
+    return 7;
+  }
+
   if (!print_event(&ev, &json))
   {
     fprintf(stderr, "buffer too small\n");

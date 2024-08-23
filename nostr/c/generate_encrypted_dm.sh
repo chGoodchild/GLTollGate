@@ -16,13 +16,16 @@ generate_encrypted_dm_json() {
     RECIPIENT_PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$recipient_json_file")
 
     # Using nostril to generate the encrypted DM
+    content_file=$(mktemp)
+    echo "$3" > "$content_file"
     ./nostril --dm "$RECIPIENT_PUBLIC_KEY_HEX" \
-              --content "$content" \
+              --content "$(cat $content_file)" \
               --sec "$PRIVATE_KEY_HEX" \
               --kind 14 \
               --envelope \
-              --created-at $(date +%s)  2> $OUTPUT_FILE
-    
+              --created-at $(date +%s) 2> $OUTPUT_FILE
+    rm "$content_file"
+
     cat $OUTPUT_FILE
 
 }
