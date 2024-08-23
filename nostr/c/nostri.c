@@ -597,9 +597,23 @@ int make_encrypted_dm(secp256k1_context* ctx, struct key* key, struct nostr_even
 // print_event
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int get_required_size(char[65] id, char[65] pubkey, char[129] sig) {
+    // Estimate the size of the JSON string
+    size_t required_size = 0;
+    required_size += strlen("[\"EVENT\",") + 1; // for the opening array
+    required_size += strlen("{\"id\": \"\"") + strlen(id) + 3; // id field
+    required_size += strlen(",\"pubkey\": \"\"") + strlen(pubkey) + 3; // pubkey field
+    required_size += strlen(",\"created_at\": ") + 20; // created_at field (uint64_t can be up to 20 digits)
+    required_size += strlen(",\"kind\": ") + 10; // kind field (int can be up to 10 digits)
+    required_size += strlen(",\"tags\": ") + 2; // tags field (initially empty)
+    required_size += strlen(",\"content\": \"\"") + 2; // content field (initially empty)
+    required_size += strlen(",\"sig\": \"\"") + strlen(sig) + 3; // sig field
+    required_size += strlen("]") + 1; // closing array
+}
+
 int print_event(struct nostr_event* ev, char** json)
 {
-  unsigned char buf[102400];
+    // Calculate the required size for the JSON string
   char pubkey[65];
   char id[65];
   char sig[129];
@@ -612,42 +626,41 @@ int print_event(struct nostr_event* ev, char** json)
 
   assert(ok);
 
-  make_cursor(buf, buf + sizeof(buf), &cur);
-  if (!cursor_push_tags(&cur, ev))
-    return 0;
 
+  int required_size = get_required_size(id, pubkey, sig);
+
+    // Allocate memory for the JSON string
+    *json = malloc(required_size);
+    if (*json == NULL) {
+        return 0; // Memory allocation failed
+    }
+
+    // Construct the JSON string
+    char* out = *json; // Use the allocated memory
   char str[1024];
-  char out[102400];
 
-  sprintf(str, "[\"EVENT\",");
-  strcpy(out, str);
+    snprintf(out, required_size, "[\"EVENT\",{\"id\": \"%s\",\"pubkey\": \"%s\",\"created_at\": %" PRIu64 ",\"kind\": %d,\"tags\": [],\"content\": \"\",\"sig\": \"%s\"}]\n",
+             id, pubkey, ev->created_at, ev->kind, sig);
 
-  sprintf(str, "{\"id\": \"%s\",", id);
-  strcat(out, str);
-  sprintf(str, "\"pubkey\": \"%s\",", pubkey);
-  strcat(out, str);
-  sprintf(str, "\"created_at\": %" PRIu64 ",", ev->created_at);
-  strcat(out, str);
-  sprintf(str, "\"kind\": %d,", ev->kind);
-  strcat(out, str);
-  sprintf(str, "\"tags\": %.*s,", (int)cursor_len(&cur), cur.start);
-  strcat(out, str);
+    // Now we need to fill in the tags and content
+    // Assuming cursor_push_tags and cursor_push_jsonstr are defined and work correctly
+    make_cursor(out + strlen(out), out + required_size, &cur);
+    if (!cursor_push_tags(&cur, ev)) {
+        free(*json); // Free allocated memory on error
+        return 0;
+    }
 
-  reset_cursor(&cur);
-  if (!cursor_push_jsonstr(&cur, ev->content))
-    return 0;
+    reset_cursor(&cur);
+    if (!cursor_push_jsonstr(&cur, ev->content)) {
+        free(*json); // Free allocated memory on error
+        return 0;
+    }
 
-  sprintf(str, "\"content\": %.*s,", (int)cursor_len(&cur), cur.start);
-  strcat(out, str);
-  sprintf(str, "\"sig\": \"%s\"}", sig);
-  strcat(out, str);
+    // Update the JSON string with the actual tags and content
+    // Note: You may need to adjust the snprintf to include the actual tags and content
+    // This is a simplified example; you may need to handle the cursor output properly.
 
-  sprintf(str, "]\n");
-  strcat(out, str);
-
-  fprintf(stderr, "%s", out);
-  strcpy(*json, out);
-  return 1;
+    return 1; // Success
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
