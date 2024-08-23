@@ -1,33 +1,37 @@
 #!/bin/sh
 
 # Define file paths and constants
-JSON_FILE="nostr_keys.json"
 OUTPUT_FILE="/tmp/send.json"
-
-# Extract keys from the JSON file
-PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$JSON_FILE")
-PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$JSON_FILE")
 
 # Function to generate encrypted DM JSON using nostril
 generate_encrypted_dm_json() {
-    recipient_pubkey=$1
-    content=$2
+    sender_json_file=$1
+    recipient_json_file=$2
+    content=$3
+
+    # Extract keys from the provided JSON file for sender
+    PRIVATE_KEY_HEX=$(jq -r '.nsec_hex' "$sender_json_file")
+    
+    # Extract recipient public key from the recipient JSON file
+    RECIPIENT_PUBLIC_KEY_HEX=$(jq -r '.npub_hex' "$recipient_json_file")
 
     # Using nostril to generate the encrypted DM
-    ./nostril --dm "$recipient_pubkey" \
+    ./nostril --dm "$RECIPIENT_PUBLIC_KEY_HEX" \
               --content "$content" \
               --sec "$PRIVATE_KEY_HEX" \
               --kind 14 \
               --envelope \
-              --created-at $(date +%s) > $OUTPUT_FILE
-
+              --created-at $(date +%s)  2> $OUTPUT_FILE
+    
     cat $OUTPUT_FILE
+
 }
 
 # Main execution flow, check for required arguments
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <recipient_pubkey> <message>"
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <sender_json_file> <recipient_json_file> <message>"
     exit 1
 else
-    generate_encrypted_dm_json "$1" "$2"
+    generate_encrypted_dm_json "$1" "$2" "$3"
 fi
+
