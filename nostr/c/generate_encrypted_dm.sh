@@ -18,7 +18,7 @@ generate_encrypted_dm_json() {
     # Using nostril to generate the encrypted DM
     content_file=$(mktemp)
     echo "$3" > "$content_file"
-    ./nostril --dm "$RECIPIENT_PUBLIC_KEY_HEX" \
+    valgrind ./nostril --dm "$RECIPIENT_PUBLIC_KEY_HEX" \
               --content "$(cat $content_file)" \
               --sec "$PRIVATE_KEY_HEX" \
               --kind 14 \
