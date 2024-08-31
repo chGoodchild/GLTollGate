@@ -94,9 +94,9 @@ case "$METHOD" in
       fi
 
       # Check if the response contains "paid":true
-      if echo "$RESPONSE" | jq -e '.paid == true' > /dev/null; then
+      if echo "$RESPONSE" | grep -q '"paid": true'; then
         echo "Received response: $RESPONSE" >> /tmp/arguments_log.md
-        PAID_AMOUNT=$(echo "$RESPONSE" | jq -r '.total_amount | tonumber')
+        PAID_AMOUNT=$(echo "$RESPONSE" | sed -n 's/.*"total_amount": $[0-9]*$.*/\1/p')
         TOTAL_AMOUNT_MSAT=$((PAID_AMOUNT * 1000))
         echo "Amount paid: $PAID_AMOUNT" >> /tmp/arguments_log.md
         echo "Total amount msat: $TOTAL_AMOUNT_MSAT" >> /tmp/arguments_log.md
