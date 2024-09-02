@@ -13,9 +13,22 @@ NEW_PASSWORD=$2
 # Path to the wireless config file
 CONFIG_FILE="/etc/config/wireless"
 
-# Use sed to replace the SSID and PASSWORD
-sed -i "s/option ssid 'WIFI_SSID'/option ssid '$NEW_SSID'/" "$CONFIG_FILE"
-sed -i "s/option key 'WIFI_PASSWORD'/option key '$NEW_PASSWORD'/" "$CONFIG_FILE"
+# Use awk to replace the SSID and PASSWORD
+awk -v ssid="$NEW_SSID" -v pass="$NEW_PASSWORD" '
+/config wifi-iface '"'"'wifinet1'"'"'/ {
+    in_wifinet1 = 1
+}
+in_wifinet1 && /option ssid/ {
+    $0 = "\toption ssid '"'"'" ssid "'"'"'"
+}
+in_wifinet1 && /option key/ {
+    $0 = "\toption key '"'"'" pass "'"'"'"
+}
+/config / && !/config wifi-iface '"'"'wifinet1'"'"'/ {
+    in_wifinet1 = 0
+}
+{print}
+' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
 
 # Check if the changes were made successfully
 if [ $? -eq 0 ]; then
