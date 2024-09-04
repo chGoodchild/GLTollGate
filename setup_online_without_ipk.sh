@@ -24,7 +24,7 @@ install_packages_if_needed() {
 
 # Install dependencies (if not already included in the custom image)
 echo "Checking and installing dependencies if needed..."
-install_packages_if_needed jq curl coreutils-base64
+install_packages_if_needed coreutils-base64 unzip
 
 # Configure nodogsplash service
 echo "Configuring nodogsplash service..."
