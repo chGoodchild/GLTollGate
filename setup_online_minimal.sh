@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/sh -e
+set -x
 
 # Define Git tag for downloading specific versions
 GIT_TAG="0.0.6"
