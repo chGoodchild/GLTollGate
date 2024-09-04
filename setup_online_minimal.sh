@@ -148,33 +148,26 @@ install_packages_if_needed unzip coreutils-base64
 # Check if nodogsplash service is running
 nodogsplash_status=$(service nodogsplash status 2>&1)
 
-# Check for the presence of a known string that indicates the service is not found or inactive
-if echo "$nodogsplash_status" | grep -q "not found"; then
-    echo "Service 'nodogsplash' not installed or not running. Installing and starting the service..."
-    # Attempt to remove any existing installation first (if any)
-    opkg remove nodogsplash
-    # Install the package
+service nodogsplash stop
 
-    cp /tmp/download/GLTollGate-$GIT_TAG/www/cgi-bin/*.sh /www/cgi-bin/.
-    cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
-    cp -r /tmp/download/GLTollGate-$GIT_TAG/nostr/ /nostr/
-    # cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/config/* /etc/config/
-    cp /tmp/download/GLTollGate-$GIT_TAG/etc/config/nodogsplash /etc/config/nodogsplash
-    cp /tmp/download/GLTollGate-$GIT_TAG/etc/firewall.nodogsplash /etc/firewall.nodogsplash
-    chmod +x /etc/firewall.nodogsplash
-    /etc/./firewall.nodogsplash
+echo "Service 'nodogsplash' not installed or not running. Installing and starting the service..."
+cp /tmp/download/GLTollGate-$GIT_TAG/www/cgi-bin/*.sh /www/cgi-bin/.
+cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/nodogsplash/htdocs/* /etc/nodogsplash/htdocs/.
+cp -r /tmp/download/GLTollGate-$GIT_TAG/nostr/ /nostr/
+# cp -r /tmp/download/GLTollGate-$GIT_TAG/etc/config/* /etc/config/
+cp /tmp/download/GLTollGate-$GIT_TAG/etc/config/nodogsplash /etc/config/nodogsplash
+cp /tmp/download/GLTollGate-$GIT_TAG/etc/firewall.nodogsplash /etc/firewall.nodogsplash
+chmod +x /etc/firewall.nodogsplash
+/etc/./firewall.nodogsplash
     
-    # Attempt to start the service
-    if service nodogsplash start; then
-        echo "Service 'nodogsplash' started successfully."
-        # Optionally, you can check the status again to confirm it's running
-        service nodogsplash status
-    else
-        echo "Failed to start service 'nodogsplash'."
-        return 1  # Return with error
-    fi
+# Attempt to start the service
+if service nodogsplash start; then
+    echo "Service 'nodogsplash' started successfully."
+    # Optionally, you can check the status again to confirm it's running
+    service nodogsplash status
 else
-    echo "Service 'nodogsplash' is running."
+    echo "Failed to start service 'nodogsplash'."
+    return 1  # Return with error
 fi
 
 chmod +x /nostr/shell/install/install_keygen.sh /nostr/shell/install_keygen.sh
