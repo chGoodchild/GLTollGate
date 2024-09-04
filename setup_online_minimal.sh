@@ -1,5 +1,7 @@
 #!/bin/sh -e
-set -x
+
+##!/bin/sh -e
+#set -x
 
 # Define Git tag for downloading specific versions
 GIT_TAG="0.0.6"
@@ -169,10 +171,6 @@ else
     echo "Failed to start service 'nodogsplash'."
     return 1  # Return with error
 fi
-
-chmod +x /nostr/shell/install/install_keygen.sh /nostr/shell/install_keygen.sh
-/nostr/shell/install/./install_keygen.sh
-/nostr/shell/./generate_keys.sh
 
 # Define the command to add to crontab
 CRON_JOB="* * * * * /etc/init.d/check_time_and_disconnect start"
