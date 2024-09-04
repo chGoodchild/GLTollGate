@@ -105,29 +105,40 @@ static inline uint64_t bswap_64(uint64_t val)
 }
 #endif
 
-/* Needed for Glibc like endiness check */
-#define	__LITTLE_ENDIAN	1234
-#define	__BIG_ENDIAN	4321
-
-/* Sanity check the defines.  We don't handle weird endianness. */
-#if !HAVE_LITTLE_ENDIAN && !HAVE_BIG_ENDIAN
-#error "Unknown endian"
-#elif HAVE_LITTLE_ENDIAN && HAVE_BIG_ENDIAN
-#error "Can't compile for both big and little endian."
-#elif HAVE_LITTLE_ENDIAN
-#ifndef __BYTE_ORDER
-#define __BYTE_ORDER	__LITTLE_ENDIAN
-#elif __BYTE_ORDER != __LITTLE_ENDIAN
-#error "__BYTE_ORDER already defined, but not equal to __LITTLE_ENDIAN"
+#ifndef __BIG_ENDIAN
+#define __BIG_ENDIAN 4321
 #endif
-#elif HAVE_BIG_ENDIAN
+
+#ifndef __LITTLE_ENDIAN 
+#define __LITTLE_ENDIAN 1234
+#endif
+
+/* If __BYTE_ORDER is not already defined, we'll define it based on the system */
 #ifndef __BYTE_ORDER
-#define __BYTE_ORDER	__BIG_ENDIAN
-#elif __BYTE_ORDER != __BIG_ENDIAN
-#error "__BYTE_ORDER already defined, but not equal to __BIG_ENDIAN"
+#if defined(__LITTLE_ENDIAN__) || defined(__ARMEL__) || defined(__AARCH64EL__) || \
+    (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#elif defined(__BIG_ENDIAN__) || defined(__ARMEB__) || defined(__AARCH64EB__) || \
+    (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define __BYTE_ORDER __BIG_ENDIAN
+#else
+#error "Unable to determine endianness"
 #endif
 #endif
 
+/* Sanity check the defines. */
+#if __BYTE_ORDER != __LITTLE_ENDIAN && __BYTE_ORDER != __BIG_ENDIAN
+#error "Invalid __BYTE_ORDER defined"
+#endif
+
+/* These defines can be used in the code to check endianness */
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define HAVE_LITTLE_ENDIAN 1
+#define HAVE_BIG_ENDIAN 0
+#elif __BYTE_ORDER == __BIG_ENDIAN
+#define HAVE_LITTLE_ENDIAN 0
+#define HAVE_BIG_ENDIAN 1
+#endif
 
 #ifdef __CHECKER__
 /* sparse needs forcing to remove bitwise attribute from ccan/short_types */
