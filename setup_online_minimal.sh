@@ -72,23 +72,6 @@ check_and_download() {
     fi
 }
 
-echo "Downloading required files..."
-if ! check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"; then
-    echo "Error downloading or verifying GLTollGate.zip. Exiting..."
-    exit 1
-fi
-
-
-echo "Downloading required files..."
-check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"
-
-# Unpack the zip file
-echo "Unpacking GLTollGate.zip..."
-unzip -o GLTollGate.zip
-
-# Move to the unpacked directory (adjust the directory name if needed)
-cd GLTollGate-$GIT_TAG
-
 is_package_installed() {
     local package_name="$1"
     if opkg list-installed | grep -q "^$package_name "; then
@@ -117,7 +100,7 @@ install_packages_if_needed() {
     # If any package needs installation, update the package list first
     if [ "$update_needed" -eq 1 ]; then
         echo "Updating package list..."
-        opkg update
+        # opkg update
         update_performed=1
     fi
 
@@ -140,12 +123,28 @@ install_packages_if_needed() {
     fi
 }
 
-# Generate nsec
 
+echo "Downloading required files..."
+if ! check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"; then
+    echo "Error downloading or verifying GLTollGate.zip. Exiting..."
+    exit 1
+fi
+
+
+echo "Downloading required files..."
+check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/v$GIT_TAG.zip" "/tmp/download/GLTollGate.zip" "$GLTOLLGATE_ZIP_CHECKSUM"
 
 # Install dependencies
 echo "Installing dependencies..."
 install_packages_if_needed unzip coreutils-base64
+
+# Unpack the zip file
+echo "Unpacking GLTollGate.zip..."
+unzip -o GLTollGate.zip
+
+# Move to the unpacked directory (adjust the directory name if needed)
+cd GLTollGate-$GIT_TAG
+
 
 # Check if nodogsplash service is running
 nodogsplash_status=$(service nodogsplash status 2>&1)
