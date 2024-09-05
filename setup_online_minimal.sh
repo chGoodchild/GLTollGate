@@ -100,7 +100,7 @@ install_packages_if_needed() {
     # If any package needs installation, update the package list first
     if [ "$update_needed" -eq 1 ]; then
         echo "Updating package list..."
-        # opkg update
+        opkg update
         update_performed=1
     fi
 
@@ -136,7 +136,7 @@ check_and_download "https://github.com/chGoodchild/GLTollGate/archive/refs/tags/
 
 # Install dependencies
 echo "Installing dependencies..."
-install_packages_if_needed unzip coreutils-base64
+install_packages_if_needed coreutils-base64
 
 # Unpack the zip file
 echo "Unpacking GLTollGate.zip..."
